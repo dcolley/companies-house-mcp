@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+
+# Build outputs
+dist/
+build/
+
+# Environment variables
+.env
+.env.local
+
+# IDE files
+.vscode/settings.json
+.cursor/
+
+# Testing
+coverage/
+
+# Logs
+*.log
+
+# OS generated
+.DS_Store
+Thumbs.db
