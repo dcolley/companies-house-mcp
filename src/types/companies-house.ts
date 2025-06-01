@@ -2,28 +2,27 @@
 // This will be implemented in Task 3
 
 export interface CompanyProfile {
-  // Placeholder - implementation coming in next task
-  company_number: string;
-  company_name: string;
-  company_status: string;
-  company_type: string;
-  date_of_creation: string;
-  registered_office_address: {
-    line_1?: string;
-    line_2?: string;
-    postal_code?: string;
+  companyNumber: string;
+  companyName: string;
+  companyStatus: string;
+  type: string;
+  dateOfCreation: string;
+  registeredOfficeAddress: {
+    line1?: string;
+    line2?: string;
+    postalCode?: string;
     locality?: string;
     region?: string;
     country?: string;
   };
   accounts?: {
-    next_due?: string;
-    next_made_up_to?: string;
+    nextDue?: string;
+    nextMadeUpTo?: string;
     overdue?: boolean;
   };
-  confirmation_statement?: {
-    next_due?: string;
-    next_made_up_to?: string;
+  confirmationStatement?: {
+    nextDue?: string;
+    nextMadeUpTo?: string;
     overdue?: boolean;
   };
 }
@@ -32,15 +31,15 @@ export interface CompanyProfile {
 // These will be expanded in Task 3 with the full API wrapper
 
 export interface CompanySearchResult {
-  company_number: string;
+  companyNumber: string;
   title: string;
-  company_status: string;
-  company_type: string;
-  date_of_creation?: string;
+  companyStatus: string;
+  companyType: string;
+  dateOfCreation?: string;
   address?: {
-    line_1?: string;
-    line_2?: string;
-    postal_code?: string;
+    line1?: string;
+    line2?: string;
+    postalCode?: string;
     locality?: string;
     region?: string;
     country?: string;
@@ -57,33 +56,59 @@ export interface CompanySearchResponse {
 // Placeholder interfaces for other API endpoints
 export interface CompanyOfficer {
   name: string;
-  officer_role: string;
-  appointed_on?: string;
-  resigned_on?: string;
-  address?: any;
+  role: string;
+  appointedOn: string;
+  resignedOn?: string;
+  nationality?: string;
+  occupation?: string;
+  address?: {
+    line1?: string;
+    line2?: string;
+    postalCode?: string;
+    locality?: string;
+    region?: string;
+    country?: string;
+  };
 }
 
 export interface FilingHistoryItem {
-  transaction_id: string;
-  description: string;
+  transactionId: string;
   category: string;
+  description: string;
   date: string;
   type: string;
+  pages?: number;
+  barcode?: string;
+  status?: string;
 }
 
 export interface CompanyCharge {
-  id: string;
-  charge_number?: number;
-  description?: string;
+  chargeId: string;
+  classification: {
+    type: string;
+    description: string;
+  };
   status: string;
-  created_on?: string;
-  delivered_on?: string;
+  createdOn: string;
+  deliveredOn: string;
+  satisfiedOn?: string;
+  particulars?: string;
+  securedAmount?: string;
 }
 
 export interface PersonWithSignificantControl {
   name: string;
-  kind: string;
-  notified_on?: string;
-  natures_of_control?: string[];
-  address?: any;
+  notifiedOn: string;
+  ceasedOn?: string;
+  natureOfControl: string[];
+  countryOfResidence?: string;
+  nationality?: string;
+  address?: {
+    line1?: string;
+    line2?: string;
+    postalCode?: string;
+    locality?: string;
+    region?: string;
+    country?: string;
+  };
 } 
