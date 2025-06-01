@@ -56,7 +56,7 @@ Write tests first, then implementation.
 - `.eslintrc.json` and `.prettierrc` for code quality
 - Basic directory structure
 
-**Completion Status**: ✅ Completed
+**Completion Status**: ✅
 - All configuration files created and working
 - Project structure established
 - Build and test scripts operational
@@ -86,7 +86,7 @@ The server should register tools but not implement them yet (that's next task).
 - Basic test files
 - Environment variable handling
 
-**Completion Status**: ✅ Completed
+**Completion Status**: ✅
 - Basic MCP server implementation in place
 - CLI interface with commander
 - TypeScript types defined
@@ -117,7 +117,7 @@ Test all error scenarios: 404, 401, 429, 500, network errors.
 - `src/types/companies-house.ts` - API response types
 - Comprehensive test coverage
 
-**Completion Status**: ✅ Completed
+**Completion Status**: ✅
 - API client wrapper with rate limiting and caching implemented
 - TypeScript interfaces for all API responses defined
 - Error handling with user-friendly messages
@@ -125,6 +125,8 @@ Test all error scenarios: 404, 401, 429, 500, network errors.
 - All tests passing
 
 ### Task 4: First Tool Implementation (search_companies)
+**Status**: ✅
+
 **Prompt for Cursor Agent**:
 ```
 Implement the search_companies MCP tool with full testing.
@@ -143,13 +145,24 @@ Test with real API calls to Companies House (use a test company number like 0000
 ```
 
 **Expected Outputs**:
-- `src/tools/search-companies.ts` - Complete tool implementation
-- Input validation with Zod schemas
-- Formatted text responses
-- Error handling for all scenarios
-- Comprehensive test suite
+- `src/tools/search-companies.ts` - Tool implementation ✅
+- `tests/unit/tools/search-companies.test.ts` - Unit tests ✅
+- `src/server.ts` - Updated to register tool ✅
+- `tests/unit/server.test.ts` - Updated server tests ✅
+- `tests/integration/mcp-server.test.ts` - Integration tests ✅
+
+**Implementation Notes**:
+- Implemented search_companies tool with Zod validation
+- Added comprehensive error handling
+- Created unit and integration tests
+- Updated server to register tool
+- Fixed all TypeScript and linter errors
+- Tested with real Companies House API
+- Formatted responses for AI readability
 
 ### Task 5: Company Profile Tool Implementation
+**Status**: In Progress
+
 **Prompt for Cursor Agent**:
 ```
 Implement the get_company_profile MCP tool following the same patterns as search_companies.
@@ -167,10 +180,18 @@ Format the response to be informative but concise, highlighting the most relevan
 ```
 
 **Expected Outputs**:
-- `src/tools/get-company-profile.ts`
-- Company number validation
-- Formatted profile responses
-- Complete test coverage
+- `src/tools/get-company-profile.ts` - Tool implementation
+- `tests/unit/tools/get-company-profile.test.ts` - Unit tests
+- `src/server.ts` - Updated to register tool
+- `tests/unit/server.test.ts` - Updated server tests
+- `tests/integration/mcp-server.test.ts` - Integration tests
+
+**Implementation Notes**:
+- Implementing get_company_profile tool with Zod validation
+- Following same patterns as search_companies tool
+- Using Companies House API client for data fetching
+- Adding comprehensive error handling
+- Writing unit and integration tests
 
 ### Task 6: Officers Tool Implementation
 **Prompt for Cursor Agent**:

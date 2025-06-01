@@ -3,161 +3,45 @@
 import { Command } from "commander";
 import { CompaniesHouseMCPServer } from "./server.js";
 
-interface CLIOptions {
-  apiKey?: string;
-  debug?: boolean;
-  version?: boolean;
-}
+const program = new Command();
 
-class CompaniesHouseCLI {
-  private program: Command;
-  private server?: CompaniesHouseMCPServer;
+program
+  .name("companies-house-mcp")
+  .description("Companies House MCP Server")
+  .version("0.1.0");
 
-  constructor() {
-    this.program = new Command();
-    this.setupCLI();
-    this.setupSignalHandlers();
-  }
+program
+  .option("-p, --port <number>", "Port to run the server on", "3000")
+  .option("-k, --api-key <string>", "Companies House API key")
+  .action(async (options) => {
+    try {
+      const apiKey = options.apiKey || process.env.COMPANIES_HOUSE_API_KEY;
+      if (!apiKey) {
+        console.error("Error: Companies House API key is required. Provide it via --api-key or COMPANIES_HOUSE_API_KEY environment variable.");
+        process.exit(1);
+      }
 
-  private setupCLI(): void {
-    this.program
-      .name("companies-house-mcp")
-      .description("Companies House MCP Server - Provides UK company data to AI assistants")
-      .version("0.1.0");
+      const port = parseInt(options.port, 10);
+      const server = new CompaniesHouseMCPServer(apiKey);
 
-    this.program
-      .option("--api-key <key>", "Companies House API key (or set COMPANIES_HOUSE_API_KEY env var)")
-      .option("--debug", "Enable debug logging")
-      .option("--no-version-check", "Skip version compatibility check")
-      .helpOption("-h, --help", "Display help information");
-
-    this.program
-      .command("start", { isDefault: true })
-      .description("Start the MCP server")
-      .action(async (options: CLIOptions) => {
-        await this.startServer(options);
+      // Handle graceful shutdown
+      process.on("SIGINT", async () => {
+        console.log("\nReceived SIGINT. Shutting down gracefully...");
+        await server.stop();
+        process.exit(0);
       });
 
-    this.program
-      .command("info")
-      .description("Show server information")
-      .action(() => {
-        this.showInfo();
+      process.on("SIGTERM", async () => {
+        console.log("\nReceived SIGTERM. Shutting down gracefully...");
+        await server.stop();
+        process.exit(0);
       });
-  }
 
-  private setupSignalHandlers(): void {
-    const gracefulShutdown = async (signal: string) => {
-      console.error(`\n[INFO] ${new Date().toISOString()} - Received ${signal}, shutting down gracefully...`);
-      
-      if (this.server) {
-        try {
-          await this.server.stop();
-        } catch (error) {
-          console.error(`[ERROR] Error during shutdown: ${error}`);
-          process.exit(1);
-        }
-      }
-      
-      process.exit(0);
-    };
-
-    process.on("SIGINT", () => gracefulShutdown("SIGINT"));
-    process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
-    
-    // Handle uncaught exceptions
-    process.on("uncaughtException", (error) => {
-      console.error(`[ERROR] ${new Date().toISOString()} - Uncaught exception:`, error);
-      process.exit(1);
-    });
-
-    process.on("unhandledRejection", (reason, promise) => {
-      console.error(`[ERROR] ${new Date().toISOString()} - Unhandled rejection at:`, promise, "reason:", reason);
-      process.exit(1);
-    });
-  }
-
-  private validateEnvironment(options: CLIOptions): string {
-    // Check for API key
-    const apiKey = options.apiKey || process.env.COMPANIES_HOUSE_API_KEY;
-    
-    if (!apiKey) {
-      console.error(`[ERROR] Companies House API key is required.`);
-      console.error(`        Set COMPANIES_HOUSE_API_KEY environment variable or use --api-key option.`);
-      console.error(`        Get your API key from: https://developer.company-information.service.gov.uk/`);
-      process.exit(1);
-    }
-
-    // Set environment variables for the server
-    process.env.COMPANIES_HOUSE_API_KEY = apiKey;
-    
-    if (options.debug) {
-      process.env.DEBUG = "true";
-    }
-
-    return apiKey;
-  }
-
-  private async startServer(options: CLIOptions): Promise<void> {
-    try {
-      // Validate environment and configuration
-      this.validateEnvironment(options);
-
-      console.error(`[INFO] ${new Date().toISOString()} - Initializing Companies House MCP Server...`);
-      
-      // Create and start the MCP server
-      this.server = new CompaniesHouseMCPServer();
-      
-      const serverInfo = this.server.getServerInfo();
-      console.error(`[INFO] ${new Date().toISOString()} - Server: ${serverInfo.name} v${serverInfo.version}`);
-      console.error(`[INFO] ${new Date().toISOString()} - Tools registered: ${serverInfo.toolCount}`);
-      
-      await this.server.start();
-
+      await server.start(port);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-      console.error(`[ERROR] ${new Date().toISOString()} - Failed to start server: ${errorMessage}`);
-      
-      if (options.debug && error instanceof Error) {
-        console.error(`[DEBUG] Stack trace:`, error.stack);
-      }
-      
+      console.error("Error:", error instanceof Error ? error.message : "An unexpected error occurred");
       process.exit(1);
     }
-  }
-
-  private showInfo(): void {
-    console.log("Companies House MCP Server");
-    console.log("Version: 0.1.0");
-    console.log("Description: Provides UK Companies House data to AI assistants");
-    console.log("");
-    console.log("Environment Variables:");
-    console.log("  COMPANIES_HOUSE_API_KEY - Your Companies House API key (required)");
-    console.log("  DEBUG                   - Enable debug logging (optional)");
-    console.log("");
-    console.log("Usage:");
-    console.log("  companies-house-mcp start [options]");
-    console.log("  companies-house-mcp info");
-    console.log("");
-    console.log("Get your API key from:");
-    console.log("  https://developer.company-information.service.gov.uk/");
-  }
-
-  public async run(): Promise<void> {
-    try {
-      await this.program.parseAsync(process.argv);
-    } catch (error) {
-      console.error(`[ERROR] CLI error: ${error}`);
-      process.exit(1);
-    }
-  }
-}
-
-// Main execution
-if (import.meta.url === `file://${process.argv[1]}`) {
-  const cli = new CompaniesHouseCLI();
-  cli.run().catch((error) => {
-    console.error(`[ERROR] Failed to start CLI: ${error}`);
-    process.exit(1);
   });
-} 
+
+program.parse(); 

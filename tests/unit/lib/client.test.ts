@@ -31,39 +31,35 @@ describe("CompaniesHouseClient", () => {
   });
 
   describe("searchCompanies", () => {
-    const mockResponse = {
-      resource: {
-        items: [
-          {
-            company_number: "12345678",
-            title: "Test Company",
-            company_status: "active",
-            type: "ltd",
-            date_of_creation: "2020-01-01",
-            address: {
-              premises: "123",
-              address_line_1: "Test Street",
-              postal_code: "TE1 1ST",
-              locality: "Testville",
-              region: "Testshire",
-              country: "United Kingdom",
-            },
-          },
-        ],
-        total_results: 1,
-        items_per_page: 20,
-        page_number: 1,
+    const mockCompany = {
+      company_number: "12345678",
+      title: "Test Company",
+      company_status: "active",
+      type: "ltd",
+      date_of_creation: "2020-01-01",
+      address: {
+        premises: "123",
+        address_line_1: "Test Street",
+        postal_code: "TE1 1ST",
+        locality: "Testville",
+        region: "Testshire",
+        country: "United Kingdom",
       },
     };
 
     it("should search companies successfully", async () => {
-      const mockSearch = jest.fn().mockResolvedValue(mockResponse);
-      (client as any).apiClient.search.companies = mockSearch;
+      const mockSearchCompanies = jest.fn().mockResolvedValue({
+        resource: {
+          items: [mockCompany],
+        },
+      });
+      (client as any).apiClient.search.companies = mockSearchCompanies;
 
       const results = await client.searchCompanies("test", 20, true);
 
       expect(results).toHaveLength(1);
-      expect(results[0]).toEqual({
+      const result = results[0];
+      expect(result).toEqual({
         companyNumber: "12345678",
         title: "Test Company",
         companyStatus: "active",
@@ -81,70 +77,64 @@ describe("CompaniesHouseClient", () => {
     });
 
     it("should handle missing address fields", async () => {
-      const responseWithoutAddress = {
-        resource: {
-          items: [
-            {
-              company_number: "12345678",
-              title: "Test Company",
-              company_status: "active",
-              type: "ltd",
-              date_of_creation: "2020-01-01",
-            },
-          ],
-          total_results: 1,
-          items_per_page: 20,
-          page_number: 1,
-        },
+      const companyWithoutAddress = {
+        company_number: "12345678",
+        title: "Test Company",
+        company_status: "active",
+        type: "ltd",
+        date_of_creation: "2020-01-01",
       };
 
-      const mockSearch = jest.fn().mockResolvedValue(responseWithoutAddress);
-      (client as any).apiClient.search.companies = mockSearch;
+      const mockSearchCompanies = jest.fn().mockResolvedValue({
+        resource: {
+          items: [companyWithoutAddress],
+        },
+      });
+      (client as any).apiClient.search.companies = mockSearchCompanies;
 
       const results = await client.searchCompanies("test");
       expect(results).toHaveLength(1);
-      expect(results[0].address).toBeUndefined();
+      const result = results[0];
+      expect(result.address).toBeUndefined();
     });
 
     it("should throw error when no results found", async () => {
-      const mockSearch = jest.fn().mockResolvedValue({ resource: null });
-      (client as any).apiClient.search.companies = mockSearch;
+      const mockSearchCompanies = jest.fn().mockResolvedValue({ resource: null });
+      (client as any).apiClient.search.companies = mockSearchCompanies;
 
       await expect(client.searchCompanies("test")).rejects.toThrow("No results found");
     });
   });
 
   describe("getCompanyProfile", () => {
-    const mockResponse = {
-      resource: {
-        company_number: "12345678",
-        company_name: "Test Company Ltd",
-        company_status: "active",
-        type: "ltd",
-        date_of_creation: "2020-01-01",
-        registered_office_address: {
-          premises: "123",
-          address_line_1: "Test Street",
-          postal_code: "TE1 1ST",
-          locality: "Testville",
-          region: "Testshire",
-          country: "United Kingdom",
-        },
-        accounts: {
-          next_due: "2024-01-01",
-          next_made_up_to: "2023-12-31",
-          overdue: false,
-        },
-        confirmation_statement: {
-          next_due: "2024-06-01",
-          next_made_up_to: "2024-05-31",
-          overdue: false,
-        },
+    const mockProfile = {
+      company_number: "12345678",
+      company_name: "Test Company Ltd",
+      company_status: "active",
+      type: "ltd",
+      date_of_creation: "2020-01-01",
+      registered_office_address: {
+        premises: "123",
+        address_line_1: "Test Street",
+        postal_code: "TE1 1ST",
+        locality: "Testville",
+        region: "Testshire",
+        country: "United Kingdom",
+      },
+      accounts: {
+        next_due: "2024-01-01",
+        next_made_up_to: "2023-12-31",
+        overdue: false,
+      },
+      confirmation_statement: {
+        next_due: "2024-06-01",
+        next_made_up_to: "2024-05-31",
+        overdue: false,
       },
     };
 
     it("should get company profile successfully", async () => {
-      const mockGetProfile = jest.fn().mockResolvedValue(mockResponse);
+      const mockGetProfile = jest.fn().mockResolvedValue({ resource: mockProfile });
       (client as any).apiClient.company.getProfile = mockGetProfile;
 
       const profile = await client.getCompanyProfile("12345678");
@@ -177,17 +167,15 @@ describe("CompaniesHouseClient", () => {
     });
 
     it("should handle missing optional fields", async () => {
-      const responseWithoutOptionals = {
-        resource: {
-          company_number: "12345678",
-          company_name: "Test Company Ltd",
-          company_status: "active",
-          type: "ltd",
-          date_of_creation: "2020-01-01",
-        },
+      const profileWithoutOptionals = {
+        company_number: "12345678",
+        company_name: "Test Company Ltd",
+        company_status: "active",
+        type: "ltd",
+        date_of_creation: "2020-01-01",
       };
 
-      const mockGetProfile = jest.fn().mockResolvedValue(responseWithoutOptionals);
+      const mockGetProfile = jest.fn().mockResolvedValue({ resource: profileWithoutOptionals });
       (client as any).apiClient.company.getProfile = mockGetProfile;
 
       const profile = await client.getCompanyProfile("12345678");
@@ -207,22 +195,22 @@ describe("CompaniesHouseClient", () => {
 
   describe("Error Handling", () => {
     it("should handle API key error", async () => {
-      const mockSearch = jest.fn().mockRejectedValue({ status: 401 });
-      (client as any).apiClient.search.companies = mockSearch;
+      const mockSearchCompanies = jest.fn().mockRejectedValue({ status: 401 });
+      (client as any).apiClient.search.companies = mockSearchCompanies;
 
       await expect(client.searchCompanies("test")).rejects.toThrow("Invalid Companies House API key");
     });
 
     it("should handle rate limit error", async () => {
-      const mockSearch = jest.fn().mockRejectedValue({ status: 429 });
-      (client as any).apiClient.search.companies = mockSearch;
+      const mockSearchCompanies = jest.fn().mockRejectedValue({ status: 429 });
+      (client as any).apiClient.search.companies = mockSearchCompanies;
 
       await expect(client.searchCompanies("test")).rejects.toThrow("Rate limit exceeded");
     });
 
     it("should handle server error", async () => {
-      const mockSearch = jest.fn().mockRejectedValue({ status: 500 });
-      (client as any).apiClient.search.companies = mockSearch;
+      const mockSearchCompanies = jest.fn().mockRejectedValue({ status: 500 });
+      (client as any).apiClient.search.companies = mockSearchCompanies;
 
       await expect(client.searchCompanies("test")).rejects.toThrow("Companies House API service error");
     });

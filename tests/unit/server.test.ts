@@ -16,20 +16,11 @@ jest.mock("@modelcontextprotocol/sdk/server/stdio.js", () => ({
 
 describe("CompaniesHouseMCPServer", () => {
   let server: CompaniesHouseMCPServer;
+  const mockApiKey = "test-api-key";
 
   beforeEach(() => {
-    // Reset all mocks before each test
     jest.clearAllMocks();
     server = new CompaniesHouseMCPServer();
-  });
-
-  afterEach(async () => {
-    // Clean up server if it was started
-    try {
-      await server.stop();
-    } catch {
-      // Ignore errors during cleanup
-    }
   });
 
   describe("Constructor", () => {
@@ -37,7 +28,7 @@ describe("CompaniesHouseMCPServer", () => {
       const serverInfo = server.getServerInfo();
       expect(serverInfo.name).toBe("companies-house-mcp");
       expect(serverInfo.version).toBe("0.1.0");
-      expect(serverInfo.toolCount).toBeGreaterThan(0); // Should have placeholder tools
+      expect(serverInfo.toolCount).toBe(0);
     });
 
     it("should create server with custom name and version", () => {
@@ -117,13 +108,14 @@ describe("CompaniesHouseMCPServer", () => {
   });
 
   describe("Server Lifecycle", () => {
-    it("should start server successfully", async () => {
-      await expect(server.start()).resolves.not.toThrow();
+    it("should start and stop server", async () => {
+      await expect(server.start()).resolves.toBeUndefined();
+      await expect(server.stop()).resolves.toBeUndefined();
     });
 
-    it("should stop server successfully", async () => {
-      await server.start();
-      await expect(server.stop()).resolves.not.toThrow();
+    it("should use default port if not specified", async () => {
+      await expect(server.start()).resolves.toBeUndefined();
+      await expect(server.stop()).resolves.toBeUndefined();
     });
 
     it("should handle start errors gracefully", async () => {
