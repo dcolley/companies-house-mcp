@@ -1,14 +1,14 @@
-import { Address } from "../types/companies-house.js";
+import { Address } from '../types/companies-house.js';
 
 /**
  * Format a date string to a human-readable format
  */
 export function formatDate(dateStr: string | undefined): string {
-  if (!dateStr) return "Not available";
-  return new Date(dateStr).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric"
+  if (!dateStr) return 'Not available';
+  return new Date(dateStr).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
   });
 }
 
@@ -16,7 +16,7 @@ export function formatDate(dateStr: string | undefined): string {
  * Format an address object into a human-readable string
  */
 export function formatAddress(address: Address): string {
-  if (!address) return "Address not available";
+  if (!address) return 'Address not available';
 
   const parts = [
     address.premises,
@@ -25,8 +25,8 @@ export function formatAddress(address: Address): string {
     address.locality,
     address.region,
     address.country,
-    address.postal_code
+    address.postal_code,
   ];
 
-  return parts.filter(Boolean).join("\n");
-} 
+  return parts.filter(Boolean).join('\n');
+}

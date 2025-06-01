@@ -40,7 +40,7 @@ export class Cache {
 
     this.cache.set(key, {
       value,
-      expiry: Date.now() + (ttlSeconds * 1000),
+      expiry: Date.now() + ttlSeconds * 1000,
     });
   }
 
@@ -51,4 +51,4 @@ export class Cache {
   size(): number {
     return this.cache.size;
   }
-} 
+}

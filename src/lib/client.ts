@@ -1,21 +1,24 @@
-import { createApiClient } from "@companieshouse/api-sdk-node";
-import { ApiClient, CompanyProfile, CompanySearchResult, ApiCompanyProfile, OfficersList, FilingHistoryList } from "../types/companies-house.js";
-import { RateLimiter } from "./rate-limiter.js";
-import { Cache } from "./cache.js";
-import { APIError } from "./errors.js";
+import { createApiClient } from '@companieshouse/api-sdk-node';
+import {
+  ApiClient,
+  CompanyProfile,
+  CompanySearchResult,
+  ApiCompanyProfile,
+  OfficersList,
+  FilingHistoryList,
+} from '../types/companies-house.js';
+import { RateLimiter } from './rate-limiter.js';
+import { Cache } from './cache.js';
+import { APIError } from './errors.js';
 
 export class CompaniesHouseClient {
   private apiClient: ApiClient;
   private rateLimiter: RateLimiter;
   private cache: Cache;
 
-  constructor(
-    apiKey: string,
-    requestsPerFiveMinutes: number = 500,
-    cacheSize: number = 1000
-  ) {
+  constructor(apiKey: string, requestsPerFiveMinutes: number = 500, cacheSize: number = 1000) {
     if (!apiKey) {
-      throw new Error("Companies House API key is required");
+      throw new Error('Companies House API key is required');
     }
 
     this.apiClient = createApiClient(apiKey) as unknown as ApiClient;
@@ -47,18 +50,18 @@ export class CompaniesHouseClient {
       });
 
       if (!response.resource) {
-        throw new APIError("No results found", 404);
+        throw new APIError('No results found', 404);
       }
 
       const results = response.resource.items
-        .filter((item) => !activeOnly || item.company_status === "active")
-        .map((item) => {
+        .filter(item => !activeOnly || item.company_status === 'active')
+        .map(item => {
           const result: CompanySearchResult = {
             companyNumber: item.company_number,
             title: item.title,
             companyStatus: item.company_status,
             companyType: item.type,
-            dateOfCreation: item.date_of_creation || "",
+            dateOfCreation: item.date_of_creation || '',
           };
 
           if (item.address) {
@@ -112,7 +115,10 @@ export class CompaniesHouseClient {
     }
   }
 
-  async getCompanyOfficers(companyNumber: string, options: { activeOnly?: boolean; limit?: number } = {}): Promise<OfficersList> {
+  async getCompanyOfficers(
+    companyNumber: string,
+    options: { activeOnly?: boolean; limit?: number } = {}
+  ): Promise<OfficersList> {
     const { activeOnly = true, limit = 35 } = options;
     const cacheKey = `officers:${companyNumber}:${activeOnly}:${limit}`;
     const cached = this.cache.get(cacheKey);
@@ -127,7 +133,7 @@ export class CompaniesHouseClient {
       // This is a placeholder implementation based on expected interface
       const response = await (this.apiClient as any).company.getOfficers(companyNumber, {
         items_per_page: limit,
-        register_view: activeOnly ? 'active' : undefined
+        register_view: activeOnly ? 'active' : undefined,
       });
 
       if (!response.resource) {
@@ -141,7 +147,10 @@ export class CompaniesHouseClient {
     }
   }
 
-  async getFilingHistory(companyNumber: string, options: { category?: string; limit?: number; startIndex?: number } = {}): Promise<FilingHistoryList> {
+  async getFilingHistory(
+    companyNumber: string,
+    options: { category?: string; limit?: number; startIndex?: number } = {}
+  ): Promise<FilingHistoryList> {
     const { category, limit = 25, startIndex = 0 } = options;
     const cacheKey = `filings:${companyNumber}:${category || 'all'}:${limit}:${startIndex}`;
     const cached = this.cache.get(cacheKey);
@@ -157,7 +166,7 @@ export class CompaniesHouseClient {
       const response = await (this.apiClient as any).company.getFilingHistory(companyNumber, {
         items_per_page: limit,
         start_index: startIndex,
-        category: category
+        category: category,
       });
 
       if (!response.resource) {
@@ -171,7 +180,10 @@ export class CompaniesHouseClient {
     }
   }
 
-  async getCompanyCharges(companyNumber: string, options: { limit?: number; startIndex?: number } = {}) {
+  async getCompanyCharges(
+    companyNumber: string,
+    options: { limit?: number; startIndex?: number } = {}
+  ) {
     const { limit = 25, startIndex = 0 } = options;
     const cacheKey = `charges:${companyNumber}:${limit}:${startIndex}`;
     const cached = this.cache.get(cacheKey);
@@ -184,7 +196,7 @@ export class CompaniesHouseClient {
     try {
       const response = await (this.apiClient as any).company.getCharges(companyNumber, {
         items_per_page: limit,
-        start_index: startIndex
+        start_index: startIndex,
       });
 
       if (!response.resource) {
@@ -198,7 +210,10 @@ export class CompaniesHouseClient {
     }
   }
 
-  async getPersonsWithSignificantControl(companyNumber: string, options: { limit?: number; startIndex?: number } = {}) {
+  async getPersonsWithSignificantControl(
+    companyNumber: string,
+    options: { limit?: number; startIndex?: number } = {}
+  ) {
     const { limit = 25, startIndex = 0 } = options;
     const cacheKey = `pscs:${companyNumber}:${limit}:${startIndex}`;
     const cached = this.cache.get(cacheKey);
@@ -209,10 +224,13 @@ export class CompaniesHouseClient {
     await this.rateLimiter.checkLimit();
 
     try {
-      const response = await (this.apiClient as any).company.getPersonsWithSignificantControl(companyNumber, {
-        items_per_page: limit,
-        start_index: startIndex
-      });
+      const response = await (this.apiClient as any).company.getPersonsWithSignificantControl(
+        companyNumber,
+        {
+          items_per_page: limit,
+          start_index: startIndex,
+        }
+      );
 
       if (!response.resource) {
         throw new APIError(`PSCs for company ${companyNumber} not found`, 404);
@@ -239,11 +257,11 @@ export class CompaniesHouseClient {
       const response = await (this.apiClient as any).search.officers({
         q: query,
         items_per_page: limit,
-        start_index: startIndex
+        start_index: startIndex,
       });
 
       if (!response.resource) {
-        throw new APIError("No officers found", 404);
+        throw new APIError('No officers found', 404);
       }
 
       this.cache.set(cacheKey, response.resource, 5 * 60); // Cache for 5 minutes
@@ -259,18 +277,24 @@ export class CompaniesHouseClient {
       company_number: apiProfile.company_number,
       company_status: apiProfile.company_status,
       date_of_creation: apiProfile.date_of_creation,
-      type: apiProfile.type
+      type: apiProfile.type,
     };
 
     if (apiProfile.registered_office_address) {
       const address: any = {};
-      if (apiProfile.registered_office_address.premises) address.premises = apiProfile.registered_office_address.premises;
-      if (apiProfile.registered_office_address.address_line_1) address.address_line_1 = apiProfile.registered_office_address.address_line_1;
-      if (apiProfile.registered_office_address.postal_code) address.postal_code = apiProfile.registered_office_address.postal_code;
-      if (apiProfile.registered_office_address.locality) address.locality = apiProfile.registered_office_address.locality;
-      if (apiProfile.registered_office_address.region) address.region = apiProfile.registered_office_address.region;
-      if (apiProfile.registered_office_address.country) address.country = apiProfile.registered_office_address.country;
-      
+      if (apiProfile.registered_office_address.premises)
+        address.premises = apiProfile.registered_office_address.premises;
+      if (apiProfile.registered_office_address.address_line_1)
+        address.address_line_1 = apiProfile.registered_office_address.address_line_1;
+      if (apiProfile.registered_office_address.postal_code)
+        address.postal_code = apiProfile.registered_office_address.postal_code;
+      if (apiProfile.registered_office_address.locality)
+        address.locality = apiProfile.registered_office_address.locality;
+      if (apiProfile.registered_office_address.region)
+        address.region = apiProfile.registered_office_address.region;
+      if (apiProfile.registered_office_address.country)
+        address.country = apiProfile.registered_office_address.country;
+
       if (Object.keys(address).length > 0) {
         profile.registered_office_address = address;
       }
@@ -279,14 +303,14 @@ export class CompaniesHouseClient {
     if (apiProfile.accounts?.next_due) {
       profile.accounts = {
         next_accounts: {
-          due_on: apiProfile.accounts.next_due
-        }
+          due_on: apiProfile.accounts.next_due,
+        },
       };
     }
 
     if (apiProfile.confirmation_statement?.next_due) {
       profile.confirmation_statement = {
-        next_due: apiProfile.confirmation_statement.next_due
+        next_due: apiProfile.confirmation_statement.next_due,
       };
     }
 
@@ -302,23 +326,23 @@ export class CompaniesHouseClient {
     }
 
     const status = error.status || 500;
-    let message = "An error occurred while accessing the Companies House API";
+    let message = 'An error occurred while accessing the Companies House API';
 
     switch (status) {
       case 401:
-        message = "Invalid Companies House API key";
+        message = 'Invalid Companies House API key';
         break;
       case 404:
-        message = "Company not found";
+        message = 'Company not found';
         break;
       case 429:
-        message = "Rate limit exceeded. Please try again later";
+        message = 'Rate limit exceeded. Please try again later';
         break;
       case 500:
-        message = "Companies House API service error";
+        message = 'Companies House API service error';
         break;
     }
 
     return new APIError(message, status);
   }
-} 
+}

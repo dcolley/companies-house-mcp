@@ -1,6 +1,6 @@
-import { z } from "zod";
-import { CompaniesHouseClient } from "../lib/client.js";
-import { APIError } from "../lib/errors.js";
+import { z } from 'zod';
+import { CompaniesHouseClient } from '../lib/client.js';
+import { APIError } from '../lib/errors.js';
 
 interface Tool {
   getName(): string;
@@ -18,7 +18,7 @@ interface ToolResponse {
 }
 
 const searchCompaniesSchema = z.object({
-  query: z.string().min(1, "Search query is required"),
+  query: z.string().min(1, 'Search query is required'),
   limit: z.number().optional().default(20),
   activeOnly: z.boolean().optional().default(true),
 });
@@ -33,11 +33,11 @@ export class SearchCompaniesTool implements Tool {
   }
 
   getName(): string {
-    return "search_companies";
+    return 'search_companies';
   }
 
   getDescription(): string {
-    return "Search for UK companies by name or company number";
+    return 'Search for UK companies by name or company number';
   }
 
   getParameterSchema(): object {
@@ -46,7 +46,9 @@ export class SearchCompaniesTool implements Tool {
 
   async execute(parameters: unknown): Promise<ToolResponse> {
     try {
-      const { query, limit, activeOnly } = searchCompaniesSchema.parse(parameters) as SearchCompaniesParameters;
+      const { query, limit, activeOnly } = searchCompaniesSchema.parse(
+        parameters
+      ) as SearchCompaniesParameters;
 
       const results = await this.client.searchCompanies(query, limit, activeOnly);
 
@@ -54,17 +56,17 @@ export class SearchCompaniesTool implements Tool {
         return {
           content: [
             {
-              type: "text",
+              type: 'text',
               text: `No companies found matching "${query}"`,
             },
           ],
         };
       }
 
-      const formattedResults = results.map((company) => {
+      const formattedResults = results.map(company => {
         let text = `**${company.title}** (No. ${company.companyNumber})\n`;
         text += `Status: ${company.companyStatus}\n`;
-        
+
         if (company.dateOfCreation) {
           text += `Incorporated: ${company.dateOfCreation}\n`;
         }
@@ -76,7 +78,7 @@ export class SearchCompaniesTool implements Tool {
           if (company.address.locality) addressParts.push(company.address.locality);
           if (company.address.postalCode) addressParts.push(company.address.postalCode);
           if (addressParts.length > 0) {
-            text += `Address: ${addressParts.join(", ")}\n`;
+            text += `Address: ${addressParts.join(', ')}\n`;
           }
         }
 
@@ -86,19 +88,19 @@ export class SearchCompaniesTool implements Tool {
       return {
         content: [
           {
-            type: "text",
-            text: formattedResults.join("\n"),
+            type: 'text',
+            text: formattedResults.join('\n'),
           },
         ],
       };
     } catch (error) {
       if (error instanceof z.ZodError && error.errors.length > 0) {
-        const errorMessage = error.errors[0]?.message || "Invalid parameters";
+        const errorMessage = error.errors[0]?.message || 'Invalid parameters';
         return {
           isError: true,
           content: [
             {
-              type: "text",
+              type: 'text',
               text: `Error: Invalid parameters - ${errorMessage}`,
             },
           ],
@@ -110,7 +112,7 @@ export class SearchCompaniesTool implements Tool {
           isError: true,
           content: [
             {
-              type: "text",
+              type: 'text',
               text: `Error: ${error.message}`,
             },
           ],
@@ -121,11 +123,11 @@ export class SearchCompaniesTool implements Tool {
         isError: true,
         content: [
           {
-            type: "text",
-            text: "Error: An unexpected error occurred while searching companies",
+            type: 'text',
+            text: 'Error: An unexpected error occurred while searching companies',
           },
         ],
       };
     }
   }
-} 
+}

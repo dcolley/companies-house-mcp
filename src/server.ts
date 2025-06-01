@@ -1,23 +1,23 @@
 // MCP server implementation for Companies House
 // This will be implemented in Task 2
 
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
   CallToolRequestSchema,
   ErrorCode,
   ListToolsRequestSchema,
   McpError,
-} from "@modelcontextprotocol/sdk/types.js";
-import { MCPTool } from "./types/mcp.js";
-import { CompaniesHouseClient } from "./lib/client.js";
-import { SearchCompaniesTool } from "./tools/search-companies.js";
-import { GetCompanyProfileTool } from "./tools/get-company-profile.js";
-import { GetCompanyOfficersTool } from "./tools/get-company-officers.js";
-import { GetFilingHistoryTool } from "./tools/get-filing-history.js";
-import { GetCompanyChargesTool } from "./tools/get-company-charges.js";
-import { GetPersonsWithSignificantControlTool } from "./tools/get-persons-with-significant-control.js";
-import { SearchOfficersTool } from "./tools/search-officers.js";
+} from '@modelcontextprotocol/sdk/types.js';
+import { MCPTool } from './types/mcp.js';
+import { CompaniesHouseClient } from './lib/client.js';
+import { SearchCompaniesTool } from './tools/search-companies.js';
+import { GetCompanyProfileTool } from './tools/get-company-profile.js';
+import { GetCompanyOfficersTool } from './tools/get-company-officers.js';
+import { GetFilingHistoryTool } from './tools/get-filing-history.js';
+import { GetCompanyChargesTool } from './tools/get-company-charges.js';
+import { GetPersonsWithSignificantControlTool } from './tools/get-persons-with-significant-control.js';
+import { SearchOfficersTool } from './tools/search-officers.js';
 
 export class CompaniesHouseMCPServer {
   private server: Server;
@@ -25,8 +25,8 @@ export class CompaniesHouseMCPServer {
   private client: CompaniesHouseClient | undefined;
 
   constructor(
-    private serverName: string = "companies-house-mcp",
-    private version: string = "0.1.0",
+    private serverName: string = 'companies-house-mcp',
+    private version: string = '0.1.0',
     apiKey?: string
   ) {
     this.server = new Server(
@@ -43,7 +43,7 @@ export class CompaniesHouseMCPServer {
 
     if (apiKey) {
       this.client = new CompaniesHouseClient(apiKey);
-      
+
       // Register all tools
       this.registerTool(new GetCompanyProfileTool(this.client));
       this.registerTool(new GetCompanyOfficersTool(this.client));
@@ -62,12 +62,12 @@ export class CompaniesHouseMCPServer {
           const result = await searchTool.execute(args);
           return {
             content: result.content.map(item => ({
-              type: "text" as const,
-              text: item.text
+              type: 'text' as const,
+              text: item.text,
             })),
-            ...(result.isError ? { isError: result.isError } : {})
+            ...(result.isError ? { isError: result.isError } : {}),
           };
-        }
+        },
       });
     }
 
@@ -81,13 +81,13 @@ export class CompaniesHouseMCPServer {
         tools: Array.from(this.tools.values()).map(tool => ({
           name: tool.name,
           description: tool.description,
-          inputSchema: tool.inputSchema
-        }))
+          inputSchema: tool.inputSchema,
+        })),
       };
     });
 
     // Handle call_tool requests
-    this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    this.server.setRequestHandler(CallToolRequestSchema, async request => {
       const { name, arguments: args } = request.params;
 
       if (!this.tools.has(name)) {
@@ -98,8 +98,11 @@ export class CompaniesHouseMCPServer {
         const tool = this.tools.get(name)!;
         return await tool.execute(args);
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-        throw new McpError(ErrorCode.InternalError, `Error executing tool '${name}': ${errorMessage}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        throw new McpError(
+          ErrorCode.InternalError,
+          `Error executing tool '${name}': ${errorMessage}`
+        );
       }
     });
   }
@@ -128,10 +131,10 @@ export class CompaniesHouseMCPServer {
 
       const transport = new StdioServerTransport();
       await this.server.connect(transport);
-      
-      this.logInfo("MCP server started successfully");
+
+      this.logInfo('MCP server started successfully');
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       this.logError(`Failed to start MCP server: ${errorMessage}`);
       throw error;
     }
@@ -142,11 +145,11 @@ export class CompaniesHouseMCPServer {
    */
   public async stop(): Promise<void> {
     try {
-      this.logInfo("Stopping MCP server...");
+      this.logInfo('Stopping MCP server...');
       await this.server.close();
-      this.logInfo("MCP server stopped successfully");
+      this.logInfo('MCP server stopped successfully');
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       this.logError(`Error stopping MCP server: ${errorMessage}`);
       throw error;
     }
@@ -179,4 +182,4 @@ export class CompaniesHouseMCPServer {
       toolCount: this.tools.size,
     };
   }
-} 
+}

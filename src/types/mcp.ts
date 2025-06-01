@@ -1,7 +1,7 @@
 // MCP-related TypeScript interfaces
 // This will be implemented in Task 2
 
-import { z } from "zod";
+import { z } from 'zod';
 
 export interface MCPRequest {
   method: string;
@@ -10,7 +10,7 @@ export interface MCPRequest {
 
 export interface MCPResponse {
   content: Array<{
-    type: "text";
+    type: 'text';
     text: string;
   }>;
   isError?: boolean;
@@ -20,14 +20,14 @@ export interface MCPTool {
   name: string;
   description: string;
   inputSchema: {
-    type: "object";
+    type: 'object';
     properties: Record<string, any>;
     required?: string[];
   };
   execute(args: any): Promise<{
     isError?: boolean;
     content: Array<{
-      type: "text";
+      type: 'text';
       text: string;
     }>;
   }>;
@@ -46,7 +46,7 @@ export interface MCPResource {
 }
 
 export interface MCPLoggingLevel {
-  level: "debug" | "info" | "notice" | "warning" | "error" | "critical" | "alert" | "emergency";
+  level: 'debug' | 'info' | 'notice' | 'warning' | 'error' | 'critical' | 'alert' | 'emergency';
 }
 
 export interface MCPInitializeRequest {
@@ -79,4 +79,4 @@ export interface MCPInitializeResponse {
     name: string;
     version: string;
   };
-} 
+}

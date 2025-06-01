@@ -1,7 +1,7 @@
 // Companies House API TypeScript interfaces
 // This will be implemented in Task 3
 
-import { Resource } from "@companieshouse/api-sdk-node";
+import { Resource } from '@companieshouse/api-sdk-node';
 
 export interface ApiClient {
   search: {
@@ -11,9 +11,15 @@ export interface ApiClient {
   company: {
     getProfile(number: string): Promise<Resource<ApiCompanyProfile>>;
     getOfficers(number: string, options?: OfficerListOptions): Promise<Resource<OfficersList>>;
-    getFilingHistory(number: string, options?: FilingHistoryOptions): Promise<Resource<FilingHistoryList>>;
+    getFilingHistory(
+      number: string,
+      options?: FilingHistoryOptions
+    ): Promise<Resource<FilingHistoryList>>;
     getCharges(number: string, options?: ChargeListOptions): Promise<Resource<ChargesList>>;
-    getPersonsWithSignificantControl(number: string, options?: PSCListOptions): Promise<Resource<PSCList>>;
+    getPersonsWithSignificantControl(
+      number: string,
+      options?: PSCListOptions
+    ): Promise<Resource<PSCList>>;
   };
 }
 
@@ -126,14 +132,16 @@ export interface CompanySearchResult {
   companyStatus: string;
   companyType: string;
   dateOfCreation: string;
-  address?: {
-    line1?: string;
-    line2?: string;
-    postalCode?: string;
-    locality?: string;
-    region?: string;
-    country?: string;
-  } | undefined;
+  address?:
+    | {
+        line1?: string;
+        line2?: string;
+        postalCode?: string;
+        locality?: string;
+        region?: string;
+        country?: string;
+      }
+    | undefined;
 }
 
 export interface CompanySearchResponse {
@@ -262,4 +270,4 @@ export interface PSCList {
   total_results: number;
   start_index: number;
   items_per_page: number;
-} 
+}

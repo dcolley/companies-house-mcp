@@ -1,8 +1,8 @@
-import { CompaniesHouseMCPServer } from "../../src/server.js";
-import { MCPTool } from "../../src/types/mcp.js";
+import { CompaniesHouseMCPServer } from '../../src/server.js';
+import { MCPTool } from '../../src/types/mcp.js';
 
 // Mock external dependencies for integration tests
-jest.mock("@modelcontextprotocol/sdk/server/index.js", () => ({
+jest.mock('@modelcontextprotocol/sdk/server/index.js', () => ({
   Server: jest.fn().mockImplementation(() => ({
     setRequestHandler: jest.fn(),
     connect: jest.fn().mockResolvedValue(undefined),
@@ -10,11 +10,11 @@ jest.mock("@modelcontextprotocol/sdk/server/index.js", () => ({
   })),
 }));
 
-jest.mock("@modelcontextprotocol/sdk/server/stdio.js", () => ({
+jest.mock('@modelcontextprotocol/sdk/server/stdio.js', () => ({
   StdioServerTransport: jest.fn(),
 }));
 
-describe("MCP Server Integration", () => {
+describe('MCP Server Integration', () => {
   let server: CompaniesHouseMCPServer;
 
   beforeEach(() => {
@@ -25,13 +25,13 @@ describe("MCP Server Integration", () => {
     await server.stop();
   });
 
-  describe("Server Lifecycle", () => {
-    it("should start and stop server", async () => {
+  describe('Server Lifecycle', () => {
+    it('should start and stop server', async () => {
       await expect(server.start()).resolves.toBeUndefined();
       await expect(server.stop()).resolves.toBeUndefined();
     });
 
-    it("should handle multiple start/stop cycles", async () => {
+    it('should handle multiple start/stop cycles', async () => {
       await server.start();
       await server.stop();
       await server.start();
@@ -39,10 +39,10 @@ describe("MCP Server Integration", () => {
     });
   });
 
-  describe("Error Handling", () => {
-    it("should handle concurrent server instances", async () => {
-      const server1 = new CompaniesHouseMCPServer("server1");
-      const server2 = new CompaniesHouseMCPServer("server2");
+  describe('Error Handling', () => {
+    it('should handle concurrent server instances', async () => {
+      const server1 = new CompaniesHouseMCPServer('server1');
+      const server2 = new CompaniesHouseMCPServer('server2');
 
       await server1.start();
       await server2.start();
@@ -52,37 +52,37 @@ describe("MCP Server Integration", () => {
     });
   });
 
-  describe("End-to-End Server Workflow", () => {
-    it("should initialize, register tools, and start successfully", async () => {
+  describe('End-to-End Server Workflow', () => {
+    it('should initialize, register tools, and start successfully', async () => {
       // Verify server is created with correct configuration
       const serverInfo = server.getServerInfo();
-      expect(serverInfo.name).toBe("companies-house-mcp");
-      expect(serverInfo.version).toBe("0.1.0");
+      expect(serverInfo.name).toBe('companies-house-mcp');
+      expect(serverInfo.version).toBe('0.1.0');
       expect(serverInfo.toolCount).toBe(0);
 
       // Start the server
       await server.start();
-      
+
       // Verify server can be stopped
       await server.stop();
     });
 
-    it("should register and maintain tools correctly", () => {
+    it('should register and maintain tools correctly', () => {
       const initialToolCount = server.getServerInfo().toolCount;
-      
+
       // Add a test tool
       const testTool: MCPTool = {
-        name: "integration_test_tool",
-        description: "Tool for integration testing",
+        name: 'integration_test_tool',
+        description: 'Tool for integration testing',
         inputSchema: {
-          type: "object",
+          type: 'object',
           properties: {
-            testParam: { type: "string" },
+            testParam: { type: 'string' },
           },
-          required: ["testParam"],
+          required: ['testParam'],
         },
         execute: async () => ({
-          content: [{ type: "text" as const, text: "integration test response" }],
+          content: [{ type: 'text' as const, text: 'integration test response' }],
         }),
       };
 
@@ -91,20 +91,20 @@ describe("MCP Server Integration", () => {
     });
   });
 
-  describe("Memory and Performance", () => {
-    it("should not leak memory with repeated tool registration", () => {
+  describe('Memory and Performance', () => {
+    it('should not leak memory with repeated tool registration', () => {
       const initialToolCount = server.getServerInfo().toolCount;
-      
+
       // Register the same tool multiple times
       const testTool: MCPTool = {
-        name: "memory_test_tool",
-        description: "Tool for memory testing",
+        name: 'memory_test_tool',
+        description: 'Tool for memory testing',
         inputSchema: {
-          type: "object",
+          type: 'object',
           properties: {},
         },
         execute: async () => ({
-          content: [{ type: "text" as const, text: "memory test response" }],
+          content: [{ type: 'text' as const, text: 'memory test response' }],
         }),
       };
 
@@ -116,9 +116,9 @@ describe("MCP Server Integration", () => {
       expect(server.getServerInfo().toolCount).toBe(initialToolCount + 1);
     });
 
-    it("should handle rapid start/stop cycles", async () => {
+    it('should handle rapid start/stop cycles', async () => {
       const cycles = 5;
-      
+
       for (let i = 0; i < cycles; i++) {
         await server.start();
         await server.stop();
@@ -128,4 +128,4 @@ describe("MCP Server Integration", () => {
       expect(true).toBe(true);
     });
   });
-}); 
+});

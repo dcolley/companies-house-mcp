@@ -1,42 +1,43 @@
-import { z } from "zod";
-import { CompaniesHouseClient } from "../lib/client.js";
-import { MCPTool } from "../types/mcp.js";
-import { formatDate } from "../lib/formatters.js";
+import { z } from 'zod';
+import { CompaniesHouseClient } from '../lib/client.js';
+import { MCPTool } from '../types/mcp.js';
+import { formatDate } from '../lib/formatters.js';
 
 const inputSchema = {
-  type: "object" as const,
+  type: 'object' as const,
   properties: {
     companyNumber: {
-      type: "string",
+      type: 'string',
       description: "8-character company number (e.g., '00006400')",
-      pattern: "^[0-9A-Z]{8}$"
+      pattern: '^[0-9A-Z]{8}$',
     },
     limit: {
-      type: "number",
-      description: "Maximum number of charges to return (default: 25, max: 100)",
+      type: 'number',
+      description: 'Maximum number of charges to return (default: 25, max: 100)',
       minimum: 1,
-      maximum: 100
+      maximum: 100,
     },
     startIndex: {
-      type: "number", 
-      description: "Index to start results from (default: 0)",
-      minimum: 0
-    }
+      type: 'number',
+      description: 'Index to start results from (default: 0)',
+      minimum: 0,
+    },
   },
-  required: ["companyNumber"]
+  required: ['companyNumber'],
 };
 
 const zodSchema = z.object({
-  companyNumber: z.string()
+  companyNumber: z
+    .string()
     .length(8)
     .regex(/^[0-9A-Z]{8}$/, "Company number must be 8 characters (e.g., '00006400')"),
   limit: z.number().min(1).max(100).optional().default(25),
-  startIndex: z.number().min(0).optional().default(0)
+  startIndex: z.number().min(0).optional().default(0),
 });
 
 export class GetCompanyChargesTool implements MCPTool {
-  name = "get_company_charges";
-  description = "Get charges (mortgages and debentures) registered against a company";
+  name = 'get_company_charges';
+  description = 'Get charges (mortgages and debentures) registered against a company';
   inputSchema = inputSchema;
 
   constructor(private client: CompaniesHouseClient) {}
@@ -52,9 +53,9 @@ export class GetCompanyChargesTool implements MCPTool {
       // Format response
       const content = [
         {
-          type: "text" as const,
-          text: this.formatCharges(chargesData, companyNumber)
-        }
+          type: 'text' as const,
+          text: this.formatCharges(chargesData, companyNumber),
+        },
       ];
 
       return { content };
@@ -62,20 +63,24 @@ export class GetCompanyChargesTool implements MCPTool {
       if (error instanceof z.ZodError) {
         return {
           isError: true,
-          content: [{
-            type: "text" as const,
-            text: `Error: Invalid input - ${error.errors[0]?.message}`
-          }]
+          content: [
+            {
+              type: 'text' as const,
+              text: `Error: Invalid input - ${error.errors[0]?.message}`,
+            },
+          ],
         };
       }
 
       // Handle API errors
       return {
         isError: true,
-        content: [{
-          type: "text" as const,
-          text: `Error: ${error instanceof Error ? error.message : "Failed to fetch company charges"}`
-        }]
+        content: [
+          {
+            type: 'text' as const,
+            text: `Error: ${error instanceof Error ? error.message : 'Failed to fetch company charges'}`,
+          },
+        ],
       };
     }
   }
@@ -96,14 +101,18 @@ export class GetCompanyChargesTool implements MCPTool {
         charge.delivered_on ? `Delivered: ${formatDate(charge.delivered_on)}` : null,
         charge.satisfied_on ? `Satisfied: ${formatDate(charge.satisfied_on)}` : null,
         charge.classification?.type ? `Type: ${charge.classification.type}` : null,
-        charge.classification?.description ? `Description: ${charge.classification.description}` : null,
-        charge.secured_details?.amount_secured ? `Amount Secured: ${charge.secured_details.amount_secured}` : null,
-        charge.particulars ? `Particulars: ${charge.particulars}` : null
+        charge.classification?.description
+          ? `Description: ${charge.classification.description}`
+          : null,
+        charge.secured_details?.amount_secured
+          ? `Amount Secured: ${charge.secured_details.amount_secured}`
+          : null,
+        charge.particulars ? `Particulars: ${charge.particulars}` : null,
       ];
 
-      return sections.filter(Boolean).join("\n");
+      return sections.filter(Boolean).join('\n');
     });
 
-    return header + summary + charges.join("\n\n");
+    return header + summary + charges.join('\n\n');
   }
-} 
+}

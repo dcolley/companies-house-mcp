@@ -29,12 +29,10 @@ export class RateLimiter {
     this.refillTokens();
 
     if (this.tokens <= 0) {
-      const waitTime = Math.ceil(
-        ((this.refillInterval / this.maxTokens) * (1 - this.tokens)) * 1000
-      );
+      const waitTime = Math.ceil((this.refillInterval / this.maxTokens) * (1 - this.tokens) * 1000);
       throw new Error(`Rate limit exceeded. Please wait ${waitTime}ms before retrying.`);
     }
 
     this.tokens--;
   }
-} 
+}
