@@ -94,7 +94,8 @@ describe("CompaniesHouseClient", () => {
 
       const results = await client.searchCompanies("test");
       expect(results).toHaveLength(1);
-      const result = results[0];
+      const result = results[0]!;
+      expect(result).toBeDefined();
       expect(result.address).toBeUndefined();
     });
 
@@ -140,28 +141,26 @@ describe("CompaniesHouseClient", () => {
       const profile = await client.getCompanyProfile("12345678");
 
       expect(profile).toEqual({
-        companyNumber: "12345678",
-        companyName: "Test Company Ltd",
-        companyStatus: "active",
+        company_number: "12345678",
+        company_name: "Test Company Ltd",
+        company_status: "active",
         type: "ltd",
-        dateOfCreation: "2020-01-01",
-        registeredOfficeAddress: {
-          line1: "123",
-          line2: "Test Street",
-          postalCode: "TE1 1ST",
+        date_of_creation: "2020-01-01",
+        registered_office_address: {
+          premises: "123",
+          address_line_1: "Test Street",
+          postal_code: "TE1 1ST",
           locality: "Testville",
           region: "Testshire",
           country: "United Kingdom",
         },
         accounts: {
-          nextDue: "2024-01-01",
-          nextMadeUpTo: "2023-12-31",
-          overdue: false,
+          next_accounts: {
+            due_on: "2024-01-01",
+          },
         },
-        confirmationStatement: {
-          nextDue: "2024-06-01",
-          nextMadeUpTo: "2024-05-31",
-          overdue: false,
+        confirmation_statement: {
+          next_due: "2024-06-01",
         },
       });
     });
@@ -180,9 +179,9 @@ describe("CompaniesHouseClient", () => {
 
       const profile = await client.getCompanyProfile("12345678");
 
-      expect(profile.registeredOfficeAddress).toBeUndefined();
+      expect(profile.registered_office_address).toBeUndefined();
       expect(profile.accounts).toBeUndefined();
-      expect(profile.confirmationStatement).toBeUndefined();
+      expect(profile.confirmation_statement).toBeUndefined();
     });
 
     it("should throw error when company not found", async () => {

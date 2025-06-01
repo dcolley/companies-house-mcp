@@ -21,7 +21,7 @@ describe("GetFilingHistoryTool", () => {
     it("should validate company number format", async () => {
       const result = await tool.execute({ companyNumber: "invalid", limit: 25, startIndex: 0 });
       expect(result.isError).toBe(true);
-      expect(result.content[0]?.text).toContain("Company number must be 8 characters");
+      expect(result.content[0]?.text).toContain("String must contain exactly 8 character(s)");
     });
 
     it("should accept valid company number", async () => {

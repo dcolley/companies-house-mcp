@@ -11,9 +11,13 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { MCPTool } from "./types/mcp.js";
 import { CompaniesHouseClient } from "./lib/client.js";
+import { SearchCompaniesTool } from "./tools/search-companies.js";
 import { GetCompanyProfileTool } from "./tools/get-company-profile.js";
 import { GetCompanyOfficersTool } from "./tools/get-company-officers.js";
 import { GetFilingHistoryTool } from "./tools/get-filing-history.js";
+import { GetCompanyChargesTool } from "./tools/get-company-charges.js";
+import { GetPersonsWithSignificantControlTool } from "./tools/get-persons-with-significant-control.js";
+import { SearchOfficersTool } from "./tools/search-officers.js";
 
 export class CompaniesHouseMCPServer {
   private server: Server;
@@ -39,9 +43,32 @@ export class CompaniesHouseMCPServer {
 
     if (apiKey) {
       this.client = new CompaniesHouseClient(apiKey);
+      
+      // Register all tools
       this.registerTool(new GetCompanyProfileTool(this.client));
       this.registerTool(new GetCompanyOfficersTool(this.client));
       this.registerTool(new GetFilingHistoryTool(this.client));
+      this.registerTool(new GetCompanyChargesTool(this.client));
+      this.registerTool(new GetPersonsWithSignificantControlTool(this.client));
+      this.registerTool(new SearchOfficersTool(this.client));
+
+      // Register legacy SearchCompaniesTool separately
+      const searchTool = new SearchCompaniesTool(apiKey);
+      this.tools.set(searchTool.getName(), {
+        name: searchTool.getName(),
+        description: searchTool.getDescription(),
+        inputSchema: searchTool.getParameterSchema() as any,
+        execute: async (args: any) => {
+          const result = await searchTool.execute(args);
+          return {
+            content: result.content.map(item => ({
+              type: "text" as const,
+              text: item.text
+            })),
+            ...(result.isError ? { isError: result.isError } : {})
+          };
+        }
+      });
     }
 
     this.setupRequestHandlers();
@@ -123,56 +150,6 @@ export class CompaniesHouseMCPServer {
       this.logError(`Error stopping MCP server: ${errorMessage}`);
       throw error;
     }
-  }
-
-  /**
-   * Register placeholder tools for testing
-   * These will be replaced with actual implementations in subsequent tasks
-   */
-  private registerPlaceholderTools(): void {
-    const placeholderTools: MCPTool[] = [
-      {
-        name: "search_companies",
-        description: "Search for UK companies by name",
-        inputSchema: {
-          type: "object",
-          properties: {
-            query: {
-              type: "string",
-              description: "Company name or keywords to search for",
-            },
-            limit: {
-              type: "number",
-              description: "Maximum number of results to return (default: 20, max: 100)",
-              minimum: 1,
-              maximum: 100,
-            },
-            activeOnly: {
-              type: "boolean",
-              description: "Only return active companies (default: true)",
-            },
-          },
-          required: ["query"],
-        },
-      },
-      {
-        name: "get_company_profile",
-        description: "Get detailed profile information for a specific company",
-        inputSchema: {
-          type: "object",
-          properties: {
-            companyNumber: {
-              type: "string",
-              description: "8-character company number (e.g., '00006400')",
-              pattern: "^[0-9A-Z]{8}$",
-            },
-          },
-          required: ["companyNumber"],
-        },
-      },
-    ];
-
-    this.registerTools(placeholderTools);
   }
 
   /**

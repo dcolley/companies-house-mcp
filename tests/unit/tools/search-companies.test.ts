@@ -2,7 +2,13 @@ import { SearchCompaniesTool } from "../../../src/tools/search-companies.js";
 import { CompaniesHouseClient } from "../../../src/lib/client.js";
 import { APIError } from "../../../src/lib/errors.js";
 
-jest.mock("../../../src/lib/client.js");
+// Mock the client constructor to return a mock instance
+const mockSearchCompanies = jest.fn();
+jest.mock("../../../src/lib/client.js", () => ({
+  CompaniesHouseClient: jest.fn().mockImplementation(() => ({
+    searchCompanies: mockSearchCompanies,
+  })),
+}));
 
 describe("SearchCompaniesTool", () => {
   let tool: SearchCompaniesTool;
@@ -44,8 +50,7 @@ describe("SearchCompaniesTool", () => {
     };
 
     it("should format company search results correctly", async () => {
-      const mockSearchCompanies = jest.fn().mockResolvedValue([mockCompany]);
-      (CompaniesHouseClient.prototype.searchCompanies as jest.Mock) = mockSearchCompanies;
+      mockSearchCompanies.mockResolvedValue([mockCompany]);
 
       const result = await tool.execute({
         query: "test company",
@@ -53,10 +58,10 @@ describe("SearchCompaniesTool", () => {
         activeOnly: true,
       });
 
-      expect(result.content[0].text).toContain("**Test Company Ltd** (No. 12345678)");
-      expect(result.content[0].text).toContain("Status: active");
-      expect(result.content[0].text).toContain("Incorporated: 2020-01-01");
-      expect(result.content[0].text).toContain("Address: 123, Test Street, Testville, TE1 1ST");
+      expect(result.content[0]!.text).toContain("**Test Company Ltd** (No. 12345678)");
+      expect(result.content[0]!.text).toContain("Status: active");
+      expect(result.content[0]!.text).toContain("Incorporated: 2020-01-01");
+      expect(result.content[0]!.text).toContain("Address: 123, Test Street, Testville, TE1 1ST");
     });
 
     it("should handle missing optional fields", async () => {
@@ -68,28 +73,26 @@ describe("SearchCompaniesTool", () => {
         dateOfCreation: "2020-01-01",
       };
 
-      const mockSearchCompanies = jest.fn().mockResolvedValue([companyWithoutOptionals]);
-      (CompaniesHouseClient.prototype.searchCompanies as jest.Mock) = mockSearchCompanies;
+      mockSearchCompanies.mockResolvedValue([companyWithoutOptionals]);
 
       const result = await tool.execute({
         query: "test company",
       });
 
-      expect(result.content[0].text).toContain("**Test Company Ltd** (No. 12345678)");
-      expect(result.content[0].text).toContain("Status: active");
-      expect(result.content[0].text).toContain("Incorporated: 2020-01-01");
-      expect(result.content[0].text).not.toContain("Address:");
+      expect(result.content[0]!.text).toContain("**Test Company Ltd** (No. 12345678)");
+      expect(result.content[0]!.text).toContain("Status: active");
+      expect(result.content[0]!.text).toContain("Incorporated: 2020-01-01");
+      expect(result.content[0]!.text).not.toContain("Address:");
     });
 
     it("should handle no results", async () => {
-      const mockSearchCompanies = jest.fn().mockResolvedValue([]);
-      (CompaniesHouseClient.prototype.searchCompanies as jest.Mock) = mockSearchCompanies;
+      mockSearchCompanies.mockResolvedValue([]);
 
       const result = await tool.execute({
         query: "nonexistent company",
       });
 
-      expect(result.content[0].text).toContain("No companies found");
+      expect(result.content[0]!.text).toContain("No companies found");
     });
   });
 
@@ -100,31 +103,29 @@ describe("SearchCompaniesTool", () => {
       });
 
       expect(result).toHaveProperty("isError", true);
-      expect(result.content[0].text).toContain("Invalid parameters");
+      expect(result.content[0]!.text).toContain("Search query is required");
     });
 
     it("should handle API errors", async () => {
-      const mockSearchCompanies = jest.fn().mockRejectedValue(new APIError("API error", 500));
-      (CompaniesHouseClient.prototype.searchCompanies as jest.Mock) = mockSearchCompanies;
+      mockSearchCompanies.mockRejectedValue(new APIError("API error", 500));
 
       const result = await tool.execute({
         query: "test company",
       });
 
       expect(result).toHaveProperty("isError", true);
-      expect(result.content[0].text).toContain("Error: API error");
+      expect(result.content[0]!.text).toContain("Error: API error");
     });
 
     it("should handle unexpected errors", async () => {
-      const mockSearchCompanies = jest.fn().mockRejectedValue(new Error("Unexpected error"));
-      (CompaniesHouseClient.prototype.searchCompanies as jest.Mock) = mockSearchCompanies;
+      mockSearchCompanies.mockRejectedValue(new Error("Unexpected error"));
 
       const result = await tool.execute({
         query: "test company",
       });
 
       expect(result).toHaveProperty("isError", true);
-      expect(result.content[0].text).toContain("unexpected error occurred");
+      expect(result.content[0]!.text).toContain("An unexpected error occurred");
     });
   });
 }); 

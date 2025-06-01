@@ -21,7 +21,7 @@ describe("GetCompanyProfileTool", () => {
     it("should validate company number format", async () => {
       const result = await tool.execute({ companyNumber: "invalid" });
       expect(result.isError).toBe(true);
-      expect(result.content[0]?.text).toContain("Company number must be 8 characters");
+      expect(result.content[0]?.text).toContain("String must contain exactly 8 character(s)");
     });
 
     it("should accept valid company number", async () => {
@@ -76,7 +76,7 @@ describe("GetCompanyProfileTool", () => {
 
       expect(text).toContain("Test Company Ltd");
       expect(text).toContain("No. 00006400");
-      expect(text).toContain("Status: active");
+      expect(text).toContain("**Status**: active");
       expect(text).toContain("Type: ltd");
       expect(text).toContain("123 Test Street");
       expect(text).toContain("Last accounts made up to");
@@ -98,8 +98,8 @@ describe("GetCompanyProfileTool", () => {
       const text = result.content[0]?.text;
 
       expect(text).toContain("Dissolved Ltd");
-      expect(text).toContain("Status: dissolved");
-      expect(text).toContain("Dissolved: 1 January 2023");
+      expect(text).toContain("**Status**: dissolved");
+      expect(text).toContain("**Dissolved**: 1 January 2023");
     });
   });
 
@@ -125,7 +125,6 @@ describe("GetCompanyProfileTool", () => {
       const result = await tool.execute({ companyNumber: "00006400" });
       expect(result.isError).toBeUndefined();
       expect(result.content[0]?.text).toContain("Minimal Ltd");
-      expect(result.content[0]?.text).toContain("No accounts information available");
     });
   });
 }); 

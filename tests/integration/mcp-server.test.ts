@@ -81,6 +81,9 @@ describe("MCP Server Integration", () => {
           },
           required: ["testParam"],
         },
+        execute: async () => ({
+          content: [{ type: "text" as const, text: "integration test response" }],
+        }),
       };
 
       server.registerTool(testTool);
@@ -100,6 +103,9 @@ describe("MCP Server Integration", () => {
           type: "object",
           properties: {},
         },
+        execute: async () => ({
+          content: [{ type: "text" as const, text: "memory test response" }],
+        }),
       };
 
       for (let i = 0; i < 100; i++) {

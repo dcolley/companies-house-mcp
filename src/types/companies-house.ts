@@ -6,14 +6,47 @@ import { Resource } from "@companieshouse/api-sdk-node";
 export interface ApiClient {
   search: {
     companies(options: CompanySearchOptions): Promise<Resource<CompanySearchResponse>>;
+    officers(options: OfficerSearchOptions): Promise<Resource<OfficerSearchResponse>>;
   };
   company: {
     getProfile(number: string): Promise<Resource<ApiCompanyProfile>>;
+    getOfficers(number: string, options?: OfficerListOptions): Promise<Resource<OfficersList>>;
+    getFilingHistory(number: string, options?: FilingHistoryOptions): Promise<Resource<FilingHistoryList>>;
+    getCharges(number: string, options?: ChargeListOptions): Promise<Resource<ChargesList>>;
+    getPersonsWithSignificantControl(number: string, options?: PSCListOptions): Promise<Resource<PSCList>>;
   };
 }
 
 export interface CompanySearchOptions {
   q: string;
+  items_per_page?: number;
+  start_index?: number;
+}
+
+export interface OfficerSearchOptions {
+  q: string;
+  items_per_page?: number;
+  start_index?: number;
+}
+
+export interface OfficerListOptions {
+  items_per_page?: number;
+  start_index?: number;
+  register_view?: string;
+}
+
+export interface FilingHistoryOptions {
+  items_per_page?: number;
+  start_index?: number;
+  category?: string;
+}
+
+export interface ChargeListOptions {
+  items_per_page?: number;
+  start_index?: number;
+}
+
+export interface PSCListOptions {
   items_per_page?: number;
   start_index?: number;
 }
@@ -206,6 +239,27 @@ export interface OfficersList {
 export interface FilingHistoryList {
   items: FilingHistoryItem[];
   total_count: number;
+  start_index: number;
+  items_per_page: number;
+}
+
+export interface OfficerSearchResponse {
+  items: Officer[];
+  total_results: number;
+  start_index: number;
+  items_per_page: number;
+}
+
+export interface ChargesList {
+  items: CompanyCharge[];
+  total_count: number;
+  start_index: number;
+  items_per_page: number;
+}
+
+export interface PSCList {
+  items: PersonWithSignificantControl[];
+  total_results: number;
   start_index: number;
   items_per_page: number;
 } 
