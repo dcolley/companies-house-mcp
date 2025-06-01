@@ -11,7 +11,6 @@ program
   .version("0.1.0");
 
 program
-  .option("-p, --port <number>", "Port to run the server on", "3000")
   .option("-k, --api-key <string>", "Companies House API key")
   .action(async (options) => {
     try {
@@ -21,8 +20,7 @@ program
         process.exit(1);
       }
 
-      const port = parseInt(options.port, 10);
-      const server = new CompaniesHouseMCPServer(apiKey);
+      const server = new CompaniesHouseMCPServer("companies-house-mcp", "0.1.0", apiKey);
 
       // Handle graceful shutdown
       process.on("SIGINT", async () => {
@@ -37,7 +35,7 @@ program
         process.exit(0);
       });
 
-      await server.start(port);
+      await server.start();
     } catch (error) {
       console.error("Error:", error instanceof Error ? error.message : "An unexpected error occurred");
       process.exit(1);

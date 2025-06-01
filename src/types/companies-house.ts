@@ -44,30 +44,44 @@ export interface ApiCompanyProfile {
   };
 }
 
-export interface CompanyProfile {
-  companyNumber: string;
-  companyName: string;
-  companyStatus: string;
-  type: string;
-  dateOfCreation: string;
-  registeredOfficeAddress?: {
-    line1?: string;
-    line2?: string;
-    postalCode?: string;
-    locality?: string;
-    region?: string;
-    country?: string;
+export interface Address {
+  premises?: string;
+  address_line_1?: string;
+  address_line_2?: string;
+  locality?: string;
+  region?: string;
+  country?: string;
+  postal_code?: string;
+}
+
+export interface Accounts {
+  last_accounts?: {
+    made_up_to?: string;
+    type?: string;
   };
-  accounts?: {
-    nextDue?: string;
-    nextMadeUpTo?: string;
-    overdue?: boolean;
-  } | undefined;
-  confirmationStatement?: {
-    nextDue?: string;
-    nextMadeUpTo?: string;
-    overdue?: boolean;
-  } | undefined;
+  next_accounts?: {
+    due_on?: string;
+  };
+}
+
+export interface ConfirmationStatement {
+  last_made_up_to?: string;
+  next_due?: string;
+}
+
+export interface CompanyProfile {
+  company_name: string;
+  company_number: string;
+  company_status: string;
+  company_status_detail?: string;
+  date_of_creation: string;
+  date_of_dissolution?: string;
+  type?: string;
+  jurisdiction?: string;
+  registered_office_address?: Address;
+  accounts?: Accounts;
+  confirmation_statement?: ConfirmationStatement;
+  annual_return?: ConfirmationStatement;
 }
 
 // Companies House API response types
@@ -168,4 +182,23 @@ export interface PersonWithSignificantControl {
     region?: string;
     country?: string;
   };
+}
+
+export interface Officer {
+  name: string;
+  officer_role: string;
+  appointed_on: string;
+  resigned_on?: string;
+  nationality?: string;
+  occupation?: string;
+  address?: Address;
+}
+
+export interface OfficersList {
+  items: Officer[];
+  total_results: number;
+  active_count?: number;
+  resigned_count?: number;
+  start_index: number;
+  items_per_page: number;
 } 

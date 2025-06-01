@@ -1,6 +1,8 @@
 // MCP-related TypeScript interfaces
 // This will be implemented in Task 2
 
+import { z } from "zod";
+
 export interface MCPRequest {
   method: string;
   params?: any;
@@ -22,6 +24,13 @@ export interface MCPTool {
     properties: Record<string, any>;
     required?: string[];
   };
+  execute(args: any): Promise<{
+    isError?: boolean;
+    content: Array<{
+      type: "text";
+      text: string;
+    }>;
+  }>;
 }
 
 export interface MCPServer {

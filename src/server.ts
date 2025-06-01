@@ -10,12 +10,19 @@ import {
   McpError,
 } from "@modelcontextprotocol/sdk/types.js";
 import { MCPTool } from "./types/mcp.js";
+import { CompaniesHouseClient } from "./lib/client.js";
+import { GetCompanyProfileTool } from "./tools/get-company-profile.js";
 
 export class CompaniesHouseMCPServer {
   private server: Server;
   private tools: Map<string, MCPTool> = new Map();
+  private client: CompaniesHouseClient | undefined;
 
-  constructor(private serverName: string = "companies-house-mcp", private version: string = "0.1.0") {
+  constructor(
+    private serverName: string = "companies-house-mcp",
+    private version: string = "0.1.0",
+    apiKey?: string
+  ) {
     this.server = new Server(
       {
         name: serverName,
@@ -28,6 +35,11 @@ export class CompaniesHouseMCPServer {
       }
     );
 
+    if (apiKey) {
+      this.client = new CompaniesHouseClient(apiKey);
+      this.registerTool(new GetCompanyProfileTool(this.client));
+    }
+
     this.setupRequestHandlers();
   }
 
@@ -35,7 +47,21 @@ export class CompaniesHouseMCPServer {
     // Handle list_tools requests
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       return {
-        tools: Array.from(this.tools.values()),
+        tools: Array.from(this.tools.values()).map(tool => ({
+          name: tool.name,
+          description: tool.description,
+          inputSchema: {
+            type: "object",
+            properties: {
+              companyNumber: {
+                type: "string",
+                description: "8-character company number (e.g., '00006400')",
+                pattern: "^[0-9A-Z]{8}$"
+              }
+            },
+            required: ["companyNumber"]
+          }
+        }))
       };
     });
 
@@ -48,16 +74,8 @@ export class CompaniesHouseMCPServer {
       }
 
       try {
-        // For now, return a placeholder response
-        // Individual tools will be implemented in subsequent tasks
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Tool '${name}' called with arguments: ${JSON.stringify(args)}`,
-            },
-          ],
-        };
+        const tool = this.tools.get(name)!;
+        return await tool.execute(args);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
         throw new McpError(ErrorCode.InternalError, `Error executing tool '${name}': ${errorMessage}`);
@@ -86,9 +104,6 @@ export class CompaniesHouseMCPServer {
   public async start(): Promise<void> {
     try {
       this.logInfo(`Starting ${this.serverName} v${this.version}`);
-      
-      // Register placeholder tools (will be replaced in subsequent tasks)
-      this.registerPlaceholderTools();
 
       const transport = new StdioServerTransport();
       await this.server.connect(transport);
