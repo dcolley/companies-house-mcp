@@ -12,6 +12,8 @@ import {
 import { MCPTool } from "./types/mcp.js";
 import { CompaniesHouseClient } from "./lib/client.js";
 import { GetCompanyProfileTool } from "./tools/get-company-profile.js";
+import { GetCompanyOfficersTool } from "./tools/get-company-officers.js";
+import { GetFilingHistoryTool } from "./tools/get-filing-history.js";
 
 export class CompaniesHouseMCPServer {
   private server: Server;
@@ -38,6 +40,8 @@ export class CompaniesHouseMCPServer {
     if (apiKey) {
       this.client = new CompaniesHouseClient(apiKey);
       this.registerTool(new GetCompanyProfileTool(this.client));
+      this.registerTool(new GetCompanyOfficersTool(this.client));
+      this.registerTool(new GetFilingHistoryTool(this.client));
     }
 
     this.setupRequestHandlers();
@@ -50,17 +54,7 @@ export class CompaniesHouseMCPServer {
         tools: Array.from(this.tools.values()).map(tool => ({
           name: tool.name,
           description: tool.description,
-          inputSchema: {
-            type: "object",
-            properties: {
-              companyNumber: {
-                type: "string",
-                description: "8-character company number (e.g., '00006400')",
-                pattern: "^[0-9A-Z]{8}$"
-              }
-            },
-            required: ["companyNumber"]
-          }
+          inputSchema: tool.inputSchema
         }))
       };
     });

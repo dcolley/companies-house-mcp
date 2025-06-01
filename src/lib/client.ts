@@ -1,5 +1,5 @@
 import { createApiClient } from "@companieshouse/api-sdk-node";
-import { ApiClient, CompanyProfile, CompanySearchResult, ApiCompanyProfile, OfficersList } from "../types/companies-house.js";
+import { ApiClient, CompanyProfile, CompanySearchResult, ApiCompanyProfile, OfficersList, FilingHistoryList } from "../types/companies-house.js";
 import { RateLimiter } from "./rate-limiter.js";
 import { Cache } from "./cache.js";
 import { APIError } from "./errors.js";
@@ -94,6 +94,11 @@ export class CompaniesHouseClient {
   }
 
   async getCompanyOfficers(companyNumber: string, options: { activeOnly?: boolean; limit?: number } = {}): Promise<OfficersList> {
+    // This will be implemented in Task 3
+    throw new Error("Not implemented");
+  }
+
+  async getFilingHistory(companyNumber: string, options: { category?: string; limit?: number; startIndex?: number } = {}): Promise<FilingHistoryList> {
     // This will be implemented in Task 3
     throw new Error("Not implemented");
   }

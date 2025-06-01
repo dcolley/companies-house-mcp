@@ -143,7 +143,7 @@ export interface CompanyOfficer {
 }
 
 export interface FilingHistoryItem {
-  transactionId: string;
+  transaction_id: string;
   category: string;
   description: string;
   date: string;
@@ -199,6 +199,13 @@ export interface OfficersList {
   total_results: number;
   active_count?: number;
   resigned_count?: number;
+  start_index: number;
+  items_per_page: number;
+}
+
+export interface FilingHistoryList {
+  items: FilingHistoryItem[];
+  total_count: number;
   start_index: number;
   items_per_page: number;
 } 
