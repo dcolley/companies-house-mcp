@@ -97,15 +97,29 @@ export interface Accounts {
   last_accounts?: {
     made_up_to?: string;
     type?: string;
+    period_end_on?: string;
+    period_start_on?: string;
   };
   next_accounts?: {
     due_on?: string;
+    overdue?: boolean;
+    period_end_on?: string;
+    period_start_on?: string;
   };
+  accounting_reference_date?: {
+    day?: string;
+    month?: string;
+  };
+  next_due?: string;
+  next_made_up_to?: string;
+  overdue?: boolean;
 }
 
 export interface ConfirmationStatement {
   last_made_up_to?: string;
   next_due?: string;
+  next_made_up_to?: string;
+  overdue?: boolean;
 }
 
 export interface CompanyProfile {
@@ -121,6 +135,25 @@ export interface CompanyProfile {
   accounts?: Accounts;
   confirmation_statement?: ConfirmationStatement;
   annual_return?: ConfirmationStatement;
+  sic_codes?: string[];
+  previous_company_names?: Array<{
+    name: string;
+    effective_from: string;
+    ceased_on?: string;
+  }>;
+  etag?: string;
+  has_charges?: boolean;
+  has_insolvency_history?: boolean;
+  has_super_secure_pscs?: boolean;
+  can_file?: boolean;
+  registered_office_is_in_dispute?: boolean;
+  undeliverable_registered_office_address?: boolean;
+  links?: {
+    self?: string;
+    filing_history?: string;
+    officers?: string;
+    persons_with_significant_control_statements?: string;
+  };
 }
 
 // Companies House API response types

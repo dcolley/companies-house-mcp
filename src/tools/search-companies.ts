@@ -41,7 +41,26 @@ export class SearchCompaniesTool implements Tool {
   }
 
   getParameterSchema(): object {
-    return searchCompaniesSchema;
+    return {
+      type: 'object',
+      properties: {
+        query: {
+          type: 'string',
+          description: 'Company name or number to search for'
+        },
+        limit: {
+          type: 'number',
+          description: 'Maximum number of companies to return (default: 20, max: 100)',
+          minimum: 1,
+          maximum: 100
+        },
+        activeOnly: {
+          type: 'boolean',
+          description: 'Only return active companies (default: true)'
+        }
+      },
+      required: ['query']
+    };
   }
 
   async execute(parameters: unknown): Promise<ToolResponse> {
