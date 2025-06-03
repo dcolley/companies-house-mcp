@@ -24,11 +24,14 @@ const zodSchema = z.object({
 });
 
 export class GetCompanyProfileTool implements MCPTool {
+  private client: CompaniesHouseClient;
   name = 'get_company_profile';
   description = 'Get detailed profile information for a specific company';
   inputSchema = inputSchema;
 
-  constructor(private client: CompaniesHouseClient) {}
+  constructor(apiKey: string) {
+    this.client = new CompaniesHouseClient(apiKey);
+  }
 
   async execute(args: z.infer<typeof zodSchema>) {
     try {

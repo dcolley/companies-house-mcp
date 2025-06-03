@@ -36,12 +36,14 @@ const zodSchema = z.object({
 });
 
 export class GetPersonsWithSignificantControlTool implements MCPTool {
+  private client: CompaniesHouseClient;
   name = 'get_persons_with_significant_control';
-  description =
-    'Get persons with significant control (PSC) for a company - individuals and entities with significant influence or ownership';
+  description = 'Get persons with significant control (PSCs) for a specific company';
   inputSchema = inputSchema;
 
-  constructor(private client: CompaniesHouseClient) {}
+  constructor(apiKey: string) {
+    this.client = new CompaniesHouseClient(apiKey);
+  }
 
   async execute(args: z.infer<typeof zodSchema>) {
     try {

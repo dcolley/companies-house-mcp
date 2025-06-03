@@ -42,11 +42,14 @@ const zodSchema = z.object({
 });
 
 export class GetFilingHistoryTool implements MCPTool {
+  private client: CompaniesHouseClient;
   name = 'get_filing_history';
-  description = 'Get filing history for a company';
+  description = 'Get filing history (annual returns, accounts, etc.) for a specific company';
   inputSchema = inputSchema;
 
-  constructor(private client: CompaniesHouseClient) {}
+  constructor(apiKey: string) {
+    this.client = new CompaniesHouseClient(apiKey);
+  }
 
   async execute(args: z.infer<typeof zodSchema>) {
     try {

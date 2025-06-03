@@ -23,6 +23,7 @@ export class CompaniesHouseMCPServer {
   private server: Server;
   private tools: Map<string, MCPTool> = new Map();
   private client: CompaniesHouseClient | undefined;
+  private apiKey: string | undefined;
 
   constructor(
     private serverName: string = 'companies-house-mcp',
@@ -42,25 +43,23 @@ export class CompaniesHouseMCPServer {
     );
 
     if (apiKey) {
+      this.apiKey = apiKey;
       this.client = new CompaniesHouseClient(apiKey);
-      this.registerDefaultTools(this.client);
+      this.registerDefaultTools(apiKey);
     }
 
     this.setupRequestHandlers();
   }
 
-  private registerDefaultTools(client: CompaniesHouseClient): void {
+  private registerDefaultTools(apiKey: string): void {
     // Register all tools
-    this.registerTool(new GetCompanyProfileTool(client));
-    this.registerTool(new GetCompanyOfficersTool(client));
-    this.registerTool(new GetFilingHistoryTool(client));
-    this.registerTool(new GetCompanyChargesTool(client));
-    this.registerTool(new GetPersonsWithSignificantControlTool(client));
-    this.registerTool(new SearchOfficersTool(client));
-    
-    // SearchCompaniesTool has a different constructor signature
-    const searchTool = new SearchCompaniesTool(client.getApiKey());
-    this.registerTool(searchTool);
+    this.registerTool(new GetCompanyProfileTool(apiKey));
+    this.registerTool(new GetCompanyOfficersTool(apiKey));
+    this.registerTool(new GetFilingHistoryTool(apiKey));
+    this.registerTool(new GetCompanyChargesTool(apiKey));
+    this.registerTool(new GetPersonsWithSignificantControlTool(apiKey));
+    this.registerTool(new SearchOfficersTool(apiKey));
+    this.registerTool(new SearchCompaniesTool(apiKey));
   }
 
   private setupRequestHandlers(): void {
