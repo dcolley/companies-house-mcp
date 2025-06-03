@@ -9,9 +9,12 @@
 
 import { CompaniesHouseClient } from '../../src/lib/client.js';
 
-// Skip tests if no API key is provided
+// Check if we're in an environment with fetch support
+const hasFetchSupport = typeof globalThis.fetch === 'function';
+
+// Skip tests if no API key is provided or if fetch is not available
 const apiKey = process.env.COMPANIES_HOUSE_API_KEY;
-const runTests = apiKey ? describe : describe.skip;
+const runTests = (apiKey && hasFetchSupport) ? describe : describe.skip;
 
 runTests('Companies House API Integration', () => {
   let client: CompaniesHouseClient;
