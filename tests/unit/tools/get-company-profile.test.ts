@@ -24,7 +24,7 @@ describe('GetCompanyProfileTool', () => {
 
   describe('Input Validation', () => {
     it('should validate company number format', async () => {
-      const result = await tool.execute({ companyNumber: 'invalid' });
+      const result = await tool.execute({ companyNumber: 'invalid', verbose: false });
       expect(result.isError).toBe(true);
       expect(result.content[0]?.text).toContain('String must contain exactly 8 character(s)');
     });
@@ -39,7 +39,7 @@ describe('GetCompanyProfileTool', () => {
 
       mockClient.getCompanyProfile.mockResolvedValue(mockProfile);
 
-      const result = await tool.execute({ companyNumber: '00006400' });
+      const result = await tool.execute({ companyNumber: '00006400', verbose: false });
       expect(result.isError).toBeUndefined();
       expect(result.content[0]?.text).toContain('Test Company');
     });
@@ -76,7 +76,7 @@ describe('GetCompanyProfileTool', () => {
 
       mockClient.getCompanyProfile.mockResolvedValue(mockProfile);
 
-      const result = await tool.execute({ companyNumber: '00006400' });
+      const result = await tool.execute({ companyNumber: '00006400', verbose: false });
       const text = result.content[0]?.text;
 
       expect(text).toContain('Test Company Ltd');
@@ -99,12 +99,51 @@ describe('GetCompanyProfileTool', () => {
 
       mockClient.getCompanyProfile.mockResolvedValue(mockProfile);
 
-      const result = await tool.execute({ companyNumber: '00006401' });
+      const result = await tool.execute({ companyNumber: '00006401', verbose: false });
       const text = result.content[0]?.text;
 
       expect(text).toContain('Dissolved Ltd');
       expect(text).toContain('**Status**: dissolved');
       expect(text).toContain('**Dissolved**: 1 January 2023');
+    });
+    
+    it('should include additional information in verbose mode', async () => {
+      const mockProfile: CompanyProfile = {
+        company_name: 'Verbose Ltd',
+        company_number: '00006400',
+        company_status: 'active',
+        type: 'ltd',
+        jurisdiction: 'england-wales',
+        date_of_creation: '2020-01-01',
+        sic_codes: ['62020', '63110'],
+        previous_company_names: [
+          { 
+            name: 'Old Name Ltd', 
+            effective_from: '2015-01-01', 
+            ceased_on: '2020-01-01' 
+          }
+        ],
+        links: {
+          filing_history: '/company/00006400/filing-history',
+          officers: '/company/00006400/officers'
+        }
+      };
+
+      mockClient.getCompanyProfile.mockResolvedValue(mockProfile);
+
+      const result = await tool.execute({ companyNumber: '00006400', verbose: true });
+      const text = result.content[0]?.text;
+
+      // Standard info should still be present
+      expect(text).toContain('Verbose Ltd');
+      expect(text).toContain('No. 00006400');
+      
+      // Verbose-only information should be present
+      expect(text).toContain('SIC Codes');
+      expect(text).toContain('62020');
+      expect(text).toContain('Previous Names');
+      expect(text).toContain('Old Name Ltd');
+      expect(text).toContain('Additional Information Available');
     });
   });
 
@@ -112,7 +151,7 @@ describe('GetCompanyProfileTool', () => {
     it('should handle API errors', async () => {
       mockClient.getCompanyProfile.mockRejectedValue(new Error('Company not found'));
 
-      const result = await tool.execute({ companyNumber: '00006400' });
+      const result = await tool.execute({ companyNumber: '00006400', verbose: false });
       expect(result.isError).toBe(true);
       expect(result.content[0]?.text).toContain('Company not found');
     });
@@ -127,7 +166,7 @@ describe('GetCompanyProfileTool', () => {
 
       mockClient.getCompanyProfile.mockResolvedValue(mockProfile);
 
-      const result = await tool.execute({ companyNumber: '00006400' });
+      const result = await tool.execute({ companyNumber: '00006400', verbose: false });
       expect(result.isError).toBeUndefined();
       expect(result.content[0]?.text).toContain('Minimal Ltd');
     });
@@ -151,7 +190,7 @@ describe('GetCompanyProfileTool', () => {
     it('should get company profile successfully', async () => {
       mockClient.getCompanyProfile.mockResolvedValue(mockProfile);
 
-      const result = await tool.execute({ companyNumber: '12345678' });
+      const result = await tool.execute({ companyNumber: '12345678', verbose: false });
 
       expect(result.isError).toBeUndefined();
       expect(result.content).toHaveLength(1);
@@ -161,7 +200,7 @@ describe('GetCompanyProfileTool', () => {
     });
 
     it('should handle validation errors', async () => {
-      const result = await tool.execute({ companyNumber: 'invalid' });
+      const result = await tool.execute({ companyNumber: 'invalid', verbose: false });
 
       expect(result.isError).toBe(true);
       expect(result.content[0]!.text).toContain('Error: Invalid input');
@@ -170,10 +209,10 @@ describe('GetCompanyProfileTool', () => {
     it('should handle API errors', async () => {
       mockClient.getCompanyProfile.mockRejectedValue(new Error('API error'));
 
-      const result = await tool.execute({ companyNumber: '12345678' });
+      const result = await tool.execute({ companyNumber: '12345678', verbose: false });
 
       expect(result.isError).toBe(true);
-      expect(result.content[0]!.text).toContain('Error: Failed to fetch company profile');
+      expect(result.content[0]!.text).toContain('Error: API error');
     });
   });
 });

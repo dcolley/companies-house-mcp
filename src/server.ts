@@ -6,6 +6,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import {
   CallToolRequestSchema,
   ErrorCode,
+  InitializeRequestSchema,
   ListToolsRequestSchema,
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
@@ -63,6 +64,20 @@ export class CompaniesHouseMCPServer {
   }
 
   private setupRequestHandlers(): void {
+    // Explicitly handle initialize requests
+    this.server.setRequestHandler(InitializeRequestSchema, async () => {
+      return {
+        protocolVersion: "2024-11-05",
+        capabilities: {
+          tools: {}
+        },
+        serverInfo: {
+          name: this.serverName,
+          version: this.version
+        }
+      };
+    });
+
     // Handle list_tools requests
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       return {
