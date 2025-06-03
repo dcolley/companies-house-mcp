@@ -1,18 +1,14 @@
-# Use Node.js 20 on Alpine for smaller image size
-FROM node:20-alpine
+# Build stage
+FROM node:20-alpine AS builder
 
-# Set the working directory
 WORKDIR /app
 
-# Install system dependencies for building native modules
-RUN apk add --no-cache python3 make g++
-
-# Copy package files first for better Docker layer caching
+# Copy package files
 COPY package*.json ./
 COPY tsconfig.json ./
 
 # Install dependencies
-RUN npm ci --only=production
+RUN npm ci
 
 # Copy source code
 COPY src/ ./src/
@@ -20,35 +16,40 @@ COPY src/ ./src/
 # Build the application
 RUN npm run build
 
-# Remove development dependencies and build tools
-RUN npm prune --production && \
-    apk del python3 make g++ && \
-    rm -rf ~/.npm
+# Production stage
+FROM node:20-alpine
 
-# Create non-root user for security
-RUN addgroup -g 1001 -S mcp && \
-    adduser -S mcp -u 1001 -G mcp
+WORKDIR /app
 
-# Change ownership of app directory
-RUN chown -R mcp:mcp /app
+# Install dumb-init for proper signal handling
+RUN apk add --no-cache dumb-init
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+# Copy package files
+COPY package*.json ./
+
+# Install production dependencies only
+RUN npm ci --omit=dev && \
+    npm cache clean --force
+
+# Copy built application from builder stage
+COPY --from=builder /app/dist ./dist
+
+# Change ownership
+RUN chown -R nodejs:nodejs /app
 
 # Switch to non-root user
-USER mcp
+USER nodejs
 
-# Expose the port (though MCP typically uses stdio)
-EXPOSE 3000
-
-# Set environment variables
-ENV NODE_ENV=production
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD node -e "console.log('Health check passed')" || exit 1
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
 
 # Default command
 CMD ["node", "dist/index.js"]
 
-# Labels for metadata
-LABEL maintainer="Companies House MCP Server"
-LABEL version="0.1.0"
-LABEL description="Model Context Protocol server for UK Companies House API" 
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "console.log('OK')" || exit 1

@@ -43,35 +43,24 @@ export class CompaniesHouseMCPServer {
 
     if (apiKey) {
       this.client = new CompaniesHouseClient(apiKey);
-
-      // Register all tools
-      this.registerTool(new GetCompanyProfileTool(this.client));
-      this.registerTool(new GetCompanyOfficersTool(this.client));
-      this.registerTool(new GetFilingHistoryTool(this.client));
-      this.registerTool(new GetCompanyChargesTool(this.client));
-      this.registerTool(new GetPersonsWithSignificantControlTool(this.client));
-      this.registerTool(new SearchOfficersTool(this.client));
-
-      // Register legacy SearchCompaniesTool separately
-      const searchTool = new SearchCompaniesTool(apiKey);
-      this.tools.set(searchTool.getName(), {
-        name: searchTool.getName(),
-        description: searchTool.getDescription(),
-        inputSchema: searchTool.getParameterSchema() as any,
-        execute: async (args: any) => {
-          const result = await searchTool.execute(args);
-          return {
-            content: result.content.map(item => ({
-              type: 'text' as const,
-              text: item.text,
-            })),
-            ...(result.isError ? { isError: result.isError } : {}),
-          };
-        },
-      });
+      this.registerDefaultTools(this.client);
     }
 
     this.setupRequestHandlers();
+  }
+
+  private registerDefaultTools(client: CompaniesHouseClient): void {
+    // Register all tools
+    this.registerTool(new GetCompanyProfileTool(client));
+    this.registerTool(new GetCompanyOfficersTool(client));
+    this.registerTool(new GetFilingHistoryTool(client));
+    this.registerTool(new GetCompanyChargesTool(client));
+    this.registerTool(new GetPersonsWithSignificantControlTool(client));
+    this.registerTool(new SearchOfficersTool(client));
+    
+    // SearchCompaniesTool has a different constructor signature
+    const searchTool = new SearchCompaniesTool(client.getApiKey());
+    this.registerTool(searchTool);
   }
 
   private setupRequestHandlers(): void {

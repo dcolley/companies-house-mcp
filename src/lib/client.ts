@@ -25,6 +25,13 @@ export class CompaniesHouseClient {
   }
 
   /**
+   * Get the API key for tools that need direct access
+   */
+  public getApiKey(): string {
+    return this.apiKey;
+  }
+
+  /**
    * Make an authenticated HTTP request to the Companies House API
    */
   private async makeRequest(endpoint: string): Promise<any> {

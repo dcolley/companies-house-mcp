@@ -1,21 +1,7 @@
 import { z } from 'zod';
 import { CompaniesHouseClient } from '../lib/client.js';
 import { APIError } from '../lib/errors.js';
-
-interface Tool {
-  getName(): string;
-  getDescription(): string;
-  getParameterSchema(): object;
-  execute(parameters: unknown): Promise<ToolResponse>;
-}
-
-interface ToolResponse {
-  isError?: boolean;
-  content: Array<{
-    type: string;
-    text: string;
-  }>;
-}
+import { MCPTool, MCPResponse } from '../types/mcp.js';
 
 const searchCompaniesSchema = z.object({
   query: z.string().min(1, 'Search query is required'),
@@ -25,45 +11,36 @@ const searchCompaniesSchema = z.object({
 
 type SearchCompaniesParameters = z.infer<typeof searchCompaniesSchema>;
 
-export class SearchCompaniesTool implements Tool {
+export class SearchCompaniesTool implements MCPTool {
   private client: CompaniesHouseClient;
+  name = 'search_companies';
+  description = 'Search for UK companies by name or company number';
+  inputSchema = {
+    type: 'object' as const,
+    properties: {
+      query: {
+        type: 'string',
+        description: 'Company name or number to search for'
+      },
+      limit: {
+        type: 'number',
+        description: 'Maximum number of companies to return (default: 20, max: 100)',
+        minimum: 1,
+        maximum: 100
+      },
+      activeOnly: {
+        type: 'boolean',
+        description: 'Only return active companies (default: true)'
+      }
+    },
+    required: ['query']
+  };
 
   constructor(apiKey: string) {
     this.client = new CompaniesHouseClient(apiKey);
   }
 
-  getName(): string {
-    return 'search_companies';
-  }
-
-  getDescription(): string {
-    return 'Search for UK companies by name or company number';
-  }
-
-  getParameterSchema(): object {
-    return {
-      type: 'object',
-      properties: {
-        query: {
-          type: 'string',
-          description: 'Company name or number to search for'
-        },
-        limit: {
-          type: 'number',
-          description: 'Maximum number of companies to return (default: 20, max: 100)',
-          minimum: 1,
-          maximum: 100
-        },
-        activeOnly: {
-          type: 'boolean',
-          description: 'Only return active companies (default: true)'
-        }
-      },
-      required: ['query']
-    };
-  }
-
-  async execute(parameters: unknown): Promise<ToolResponse> {
+  async execute(parameters: unknown): Promise<MCPResponse> {
     try {
       const { query, limit, activeOnly } = searchCompaniesSchema.parse(
         parameters
@@ -75,7 +52,7 @@ export class SearchCompaniesTool implements Tool {
         return {
           content: [
             {
-              type: 'text',
+              type: 'text' as const,
               text: `No companies found matching "${query}"`,
             },
           ],
@@ -107,7 +84,7 @@ export class SearchCompaniesTool implements Tool {
       return {
         content: [
           {
-            type: 'text',
+            type: 'text' as const,
             text: formattedResults.join('\n'),
           },
         ],
@@ -119,7 +96,7 @@ export class SearchCompaniesTool implements Tool {
           isError: true,
           content: [
             {
-              type: 'text',
+              type: 'text' as const,
               text: `Error: Invalid parameters - ${errorMessage}`,
             },
           ],
@@ -131,7 +108,7 @@ export class SearchCompaniesTool implements Tool {
           isError: true,
           content: [
             {
-              type: 'text',
+              type: 'text' as const,
               text: `Error: ${error.message}`,
             },
           ],
@@ -142,7 +119,7 @@ export class SearchCompaniesTool implements Tool {
         isError: true,
         content: [
           {
-            type: 'text',
+            type: 'text' as const,
             text: 'Error: An unexpected error occurred while searching companies',
           },
         ],
