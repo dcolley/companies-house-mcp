@@ -32,11 +32,14 @@ const zodSchema = z.object({
 });
 
 export class SearchOfficersTool implements MCPTool {
+  private client: CompaniesHouseClient;
   name = 'search_officers';
-  description = 'Search for UK company officers by name';
+  description = 'Search for company officers (directors, secretaries) by name';
   inputSchema = inputSchema;
 
-  constructor(private client: CompaniesHouseClient) {}
+  constructor(apiKey: string) {
+    this.client = new CompaniesHouseClient(apiKey);
+  }
 
   async execute(args: z.infer<typeof zodSchema>) {
     try {

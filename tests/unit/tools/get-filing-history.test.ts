@@ -8,13 +8,18 @@ jest.mock('../../../src/lib/client.js');
 describe('GetFilingHistoryTool', () => {
   let tool: GetFilingHistoryTool;
   let mockClient: jest.Mocked<CompaniesHouseClient>;
+  const mockApiKey = 'test-api-key';
 
   beforeEach(() => {
     mockClient = {
       getFilingHistory: jest.fn(),
     } as any;
 
-    tool = new GetFilingHistoryTool(mockClient);
+    // Make the constructor return our mock instance
+    (CompaniesHouseClient as jest.Mock).mockImplementation(() => mockClient);
+    
+    // Create the tool with the API key
+    tool = new GetFilingHistoryTool(mockApiKey);
   });
 
   describe('Input Validation', () => {

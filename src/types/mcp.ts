@@ -8,30 +8,36 @@ export interface MCPRequest {
   params?: any;
 }
 
-export interface MCPResponse {
-  content: Array<{
-    type: 'text';
-    text: string;
-  }>;
+/**
+ * MCP Tool interface
+ */
+
+interface MCPToolResponse {
   isError?: boolean;
+  content: Array<{
+    type: string;
+    text: string;
+    params?: Record<string, unknown>;
+  }>;
 }
 
+export interface MCPToolSchema {
+  type: 'object';
+  properties: Record<string, unknown>;
+  required?: string[];
+}
+
+/**
+ * MCP Tool interface compatible with the MCP SDK
+ */
 export interface MCPTool {
   name: string;
   description: string;
-  inputSchema: {
-    type: 'object';
-    properties: Record<string, any>;
-    required?: string[];
-  };
-  execute(args: any): Promise<{
-    isError?: boolean;
-    content: Array<{
-      type: 'text';
-      text: string;
-    }>;
-  }>;
+  inputSchema: MCPToolSchema;
+  execute(args: Record<string, unknown>): Promise<MCPToolResponse>;
 }
+
+export type MCPResponse = MCPToolResponse;
 
 export interface MCPServer {
   name: string;

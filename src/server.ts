@@ -6,6 +6,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import {
   CallToolRequestSchema,
   ErrorCode,
+  InitializeRequestSchema,
   ListToolsRequestSchema,
   McpError,
 } from '@modelcontextprotocol/sdk/types.js';
@@ -23,6 +24,7 @@ export class CompaniesHouseMCPServer {
   private server: Server;
   private tools: Map<string, MCPTool> = new Map();
   private client: CompaniesHouseClient | undefined;
+  private apiKey: string | undefined;
 
   constructor(
     private serverName: string = 'companies-house-mcp',
@@ -42,39 +44,40 @@ export class CompaniesHouseMCPServer {
     );
 
     if (apiKey) {
+      this.apiKey = apiKey;
       this.client = new CompaniesHouseClient(apiKey);
-
-      // Register all tools
-      this.registerTool(new GetCompanyProfileTool(this.client));
-      this.registerTool(new GetCompanyOfficersTool(this.client));
-      this.registerTool(new GetFilingHistoryTool(this.client));
-      this.registerTool(new GetCompanyChargesTool(this.client));
-      this.registerTool(new GetPersonsWithSignificantControlTool(this.client));
-      this.registerTool(new SearchOfficersTool(this.client));
-
-      // Register legacy SearchCompaniesTool separately
-      const searchTool = new SearchCompaniesTool(apiKey);
-      this.tools.set(searchTool.getName(), {
-        name: searchTool.getName(),
-        description: searchTool.getDescription(),
-        inputSchema: searchTool.getParameterSchema() as any,
-        execute: async (args: any) => {
-          const result = await searchTool.execute(args);
-          return {
-            content: result.content.map(item => ({
-              type: 'text' as const,
-              text: item.text,
-            })),
-            ...(result.isError ? { isError: result.isError } : {}),
-          };
-        },
-      });
+      this.registerDefaultTools(apiKey);
     }
 
     this.setupRequestHandlers();
   }
 
+  private registerDefaultTools(apiKey: string): void {
+    // Register all tools
+    this.registerTool(new GetCompanyProfileTool(apiKey));
+    this.registerTool(new GetCompanyOfficersTool(apiKey));
+    this.registerTool(new GetFilingHistoryTool(apiKey));
+    this.registerTool(new GetCompanyChargesTool(apiKey));
+    this.registerTool(new GetPersonsWithSignificantControlTool(apiKey));
+    this.registerTool(new SearchOfficersTool(apiKey));
+    this.registerTool(new SearchCompaniesTool(apiKey));
+  }
+
   private setupRequestHandlers(): void {
+    // Explicitly handle initialize requests
+    this.server.setRequestHandler(InitializeRequestSchema, async () => {
+      return {
+        protocolVersion: "2024-11-05",
+        capabilities: {
+          tools: {}
+        },
+        serverInfo: {
+          name: this.serverName,
+          version: this.version
+        }
+      };
+    });
+
     // Handle list_tools requests
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       return {
@@ -87,7 +90,7 @@ export class CompaniesHouseMCPServer {
     });
 
     // Handle call_tool requests
-    this.server.setRequestHandler(CallToolRequestSchema, async request => {
+    this.server.setRequestHandler(CallToolRequestSchema, async (request, extra) => {
       const { name, arguments: args } = request.params;
 
       if (!this.tools.has(name)) {
@@ -96,7 +99,17 @@ export class CompaniesHouseMCPServer {
 
       try {
         const tool = this.tools.get(name)!;
-        return await tool.execute(args);
+        const result = await tool.execute(args || {});
+        return {
+          tools: [
+            {
+              name: tool.name,
+              inputSchema: tool.inputSchema,
+              description: tool.description,
+            },
+          ],
+          ...result,
+        };
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
         throw new McpError(
