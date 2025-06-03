@@ -8,13 +8,18 @@ jest.mock('../../../src/lib/client.js');
 describe('GetCompanyOfficersTool', () => {
   let tool: GetCompanyOfficersTool;
   let mockClient: jest.Mocked<CompaniesHouseClient>;
+  const mockApiKey = 'test-api-key';
 
   beforeEach(() => {
     mockClient = {
       getCompanyOfficers: jest.fn(),
     } as any;
-
-    tool = new GetCompanyOfficersTool(mockClient);
+    
+    // Make the constructor return our mock instance
+    (CompaniesHouseClient as jest.Mock).mockImplementation(() => mockClient);
+    
+    // Create the tool with the API key
+    tool = new GetCompanyOfficersTool(mockApiKey);
   });
 
   describe('Input Validation', () => {
@@ -188,6 +193,68 @@ describe('GetCompanyOfficersTool', () => {
 
       const result = await tool.execute({ companyNumber: '00006400', activeOnly: true, limit: 35 });
       expect(result.content[0]?.text).toContain('Showing 35 of 50 officers');
+    });
+  });
+
+  describe('execute', () => {
+    const mockOfficersData = {
+      items: [
+        {
+          name: 'John Smith',
+          officer_role: 'director',
+          appointed_on: '2020-01-01',
+          nationality: 'British',
+          occupation: 'Manager',
+          address: {
+            premises: '123',
+            address_line_1: 'Test Street',
+            postal_code: 'TE1 1ST',
+            locality: 'Testville',
+          },
+        },
+      ],
+      total_results: 1,
+      active_count: 1,
+      resigned_count: 0,
+      start_index: 0,
+      items_per_page: 35,
+    };
+
+    it('should get company officers successfully', async () => {
+      mockClient.getCompanyOfficers.mockResolvedValue(mockOfficersData);
+
+      const result = await tool.execute({ companyNumber: '12345678', activeOnly: true, limit: 35 });
+
+      expect(result.isError).toBeUndefined();
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0]!.type).toBe('text');
+      expect(result.content[0]!.text).toContain('John Smith');
+      expect(result.content[0]!.text).toContain('director');
+    });
+
+    it('should handle no officers found', async () => {
+      mockClient.getCompanyOfficers.mockResolvedValue({ items: [], total_results: 0, start_index: 0, items_per_page: 35 });
+
+      const result = await tool.execute({ companyNumber: '12345678', activeOnly: true, limit: 35 });
+
+      expect(result.isError).toBeUndefined();
+      expect(result.content[0]!.text).toContain('No officers found');
+    });
+
+    it('should handle validation errors', async () => {
+      const result = await tool.execute({ companyNumber: 'invalid', activeOnly: true, limit: 35 });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0]!.text).toContain('Error: Invalid input');
+    });
+
+    it('should handle API errors', async () => {
+      mockClient.getCompanyOfficers.mockRejectedValue(new Error('API error'));
+
+      const result = await tool.execute({ companyNumber: '12345678', activeOnly: true, limit: 35 });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0]!.text).toContain('Error:');
     });
   });
 });

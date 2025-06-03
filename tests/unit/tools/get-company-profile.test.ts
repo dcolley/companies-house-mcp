@@ -8,13 +8,18 @@ jest.mock('../../../src/lib/client.js');
 describe('GetCompanyProfileTool', () => {
   let tool: GetCompanyProfileTool;
   let mockClient: jest.Mocked<CompaniesHouseClient>;
+  const mockApiKey = 'test-api-key';
 
   beforeEach(() => {
     mockClient = {
       getCompanyProfile: jest.fn(),
     } as any;
-
-    tool = new GetCompanyProfileTool(mockClient);
+    
+    // Make the constructor return our mock instance
+    (CompaniesHouseClient as jest.Mock).mockImplementation(() => mockClient);
+    
+    // Create the tool with the API key
+    tool = new GetCompanyProfileTool(mockApiKey);
   });
 
   describe('Input Validation', () => {
@@ -125,6 +130,50 @@ describe('GetCompanyProfileTool', () => {
       const result = await tool.execute({ companyNumber: '00006400' });
       expect(result.isError).toBeUndefined();
       expect(result.content[0]?.text).toContain('Minimal Ltd');
+    });
+  });
+
+  describe('execute', () => {
+    const mockProfile = {
+      company_number: '12345678',
+      company_name: 'Test Company',
+      company_status: 'active',
+      type: 'ltd',
+      date_of_creation: '2020-01-01',
+      registered_office_address: {
+        premises: '123',
+        address_line_1: 'Test Street',
+        postal_code: 'TE1 1ST',
+        locality: 'Testville',
+      },
+    };
+
+    it('should get company profile successfully', async () => {
+      mockClient.getCompanyProfile.mockResolvedValue(mockProfile);
+
+      const result = await tool.execute({ companyNumber: '12345678' });
+
+      expect(result.isError).toBeUndefined();
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0]!.type).toBe('text');
+      expect(result.content[0]!.text).toContain('**Test Company** (No. 12345678)');
+      expect(result.content[0]!.text).toContain('**Status**: active');
+    });
+
+    it('should handle validation errors', async () => {
+      const result = await tool.execute({ companyNumber: 'invalid' });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0]!.text).toContain('Error: Invalid input');
+    });
+
+    it('should handle API errors', async () => {
+      mockClient.getCompanyProfile.mockRejectedValue(new Error('API error'));
+
+      const result = await tool.execute({ companyNumber: '12345678' });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0]!.text).toContain('Error: Failed to fetch company profile');
     });
   });
 });

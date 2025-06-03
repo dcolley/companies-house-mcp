@@ -6,12 +6,18 @@ jest.mock('../../../src/lib/client.js');
 describe('GetCompanyChargesTool', () => {
   let tool: GetCompanyChargesTool;
   let mockClient: jest.Mocked<CompaniesHouseClient>;
+  const mockApiKey = 'test-api-key';
 
   beforeEach(() => {
     mockClient = {
       getCompanyCharges: jest.fn(),
     } as any;
-    tool = new GetCompanyChargesTool(mockClient);
+    
+    // Make the constructor return our mock instance
+    (CompaniesHouseClient as jest.Mock).mockImplementation(() => mockClient);
+    
+    // Create the tool with the API key
+    tool = new GetCompanyChargesTool(mockApiKey);
   });
 
   describe('execute', () => {
