@@ -1,7 +1,7 @@
 import { SearchCompaniesTool } from '../../../src/tools/search-companies.js';
 import { CompaniesHouseClient } from '../../../src/lib/client.js';
 import { APIError } from '../../../src/lib/errors.js';
-import companiesFixture from '../../__fixtures__/companies.json';
+import companiesFixture from '../../fixtures/companies.json';
 
 // We'll mock just the client's searchCompanies method, not the entire module
 jest.mock('../../../src/lib/client.js');
