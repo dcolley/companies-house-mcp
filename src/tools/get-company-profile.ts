@@ -12,6 +12,10 @@ const inputSchema = {
       description: "8-character company number (e.g., '00006400')",
       pattern: '^[0-9A-Z]{8}$',
     },
+    verbose: {
+      type: 'boolean',
+      description: 'Return more detailed information about the company (default: false)'
+    }
   },
   required: ['companyNumber'],
 };
@@ -21,6 +25,7 @@ const zodSchema = z.object({
     .string()
     .length(8)
     .regex(/^[0-9A-Z]{8}$/, "Company number must be 8 characters (e.g., '00006400')"),
+  verbose: z.boolean().optional().default(false),
 });
 
 export class GetCompanyProfileTool implements MCPTool {
@@ -33,37 +38,48 @@ export class GetCompanyProfileTool implements MCPTool {
     this.client = new CompaniesHouseClient(apiKey);
   }
 
+  private log(message: string): void {
+    if (process.env.DEBUG) {
+      console.error(`[GetCompanyProfileTool] ${new Date().toISOString()} - ${message}`);
+    }
+  }
+
   async execute(args: z.infer<typeof zodSchema>) {
     try {
       // Validate input
-      const { companyNumber } = zodSchema.parse(args);
+      const { companyNumber, verbose } = zodSchema.parse(args);
+      this.log(`Getting profile for company number: ${companyNumber}, verbose: ${verbose}`);
 
       // Fetch company profile
       const profile = await this.client.getCompanyProfile(companyNumber);
+      this.log(`Received profile for company: ${profile.company_name}`);
 
       // Format response
       const content = [
         {
           type: 'text' as const,
-          text: this.formatCompanyProfile(profile),
+          text: this.formatCompanyProfile(profile, verbose),
         },
       ];
 
       return { content };
     } catch (error) {
       if (error instanceof z.ZodError) {
+        const errorMessage = error.errors[0]?.message || 'Invalid input';
+        this.log(`Validation error: ${errorMessage}`);
         return {
           isError: true,
           content: [
             {
               type: 'text' as const,
-              text: `Error: Invalid input - ${error.errors[0]?.message}`,
+              text: `Error: Invalid input - ${errorMessage}`,
             },
           ],
         };
       }
 
       // Handle API errors
+      this.log(`Error fetching company profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return {
         isError: true,
         content: [
@@ -76,7 +92,9 @@ export class GetCompanyProfileTool implements MCPTool {
     }
   }
 
-  private formatCompanyProfile(profile: CompanyProfile) {
+  private formatCompanyProfile(profile: CompanyProfile, verbose: boolean = false) {
+    this.log(`Formatting company profile for ${profile.company_name}, verbose: ${verbose}`);
+    
     const sections = [
       // Company header
       `**${profile.company_name}** (No. ${profile.company_number})`,
@@ -114,6 +132,28 @@ export class GetCompanyProfileTool implements MCPTool {
           ].join('\n')
         : null,
     ];
+
+    // Add verbose-only sections
+    if (verbose) {
+      if (profile.sic_codes && profile.sic_codes.length > 0) {
+        sections.push(`**SIC Codes**: ${profile.sic_codes.join(', ')}`);
+      }
+      
+      if (profile.previous_company_names && profile.previous_company_names.length > 0) {
+        const previousNames = profile.previous_company_names.map(name => 
+          `${name.name} (from ${formatDate(name.effective_from)} to ${formatDate(name.ceased_on)})`
+        ).join('\n- ');
+        sections.push(`**Previous Names**:\n- ${previousNames}`);
+      }
+
+      if (profile.links) {
+        sections.push('**Additional Information Available**:' + 
+          (profile.links.filing_history ? '\n- Filing History' : '') +
+          (profile.links.officers ? '\n- Officers' : '') +
+          (profile.links.persons_with_significant_control_statements ? '\n- Persons with Significant Control' : '')
+        );
+      }
+    }
 
     return sections.filter(Boolean).join('\n\n');
   }

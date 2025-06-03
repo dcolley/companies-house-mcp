@@ -7,6 +7,8 @@ const searchCompaniesSchema = z.object({
   query: z.string().min(1, 'Search query is required'),
   limit: z.number().optional().default(20),
   activeOnly: z.boolean().optional().default(true),
+  verbose: z.boolean().optional().default(false),
+  pageSize: z.number().optional().default(20),
 });
 
 type SearchCompaniesParameters = z.infer<typeof searchCompaniesSchema>;
@@ -31,6 +33,16 @@ export class SearchCompaniesTool implements MCPTool {
       activeOnly: {
         type: 'boolean',
         description: 'Only return active companies (default: true)'
+      },
+      verbose: {
+        type: 'boolean',
+        description: 'Return more detailed information about each company (default: false)'
+      },
+      pageSize: {
+        type: 'number',
+        description: 'Number of results per page for pagination (default: 20, max: 100)',
+        minimum: 1,
+        maximum: 100
       }
     },
     required: ['query']
@@ -40,15 +52,24 @@ export class SearchCompaniesTool implements MCPTool {
     this.client = new CompaniesHouseClient(apiKey);
   }
 
+  private log(message: string): void {
+    if (process.env.DEBUG) {
+      console.error(`[SearchCompaniesTool] ${new Date().toISOString()} - ${message}`);
+    }
+  }
+
   async execute(parameters: unknown): Promise<MCPResponse> {
     try {
-      const { query, limit, activeOnly } = searchCompaniesSchema.parse(
+      const { query, limit, activeOnly, verbose, pageSize } = searchCompaniesSchema.parse(
         parameters
       ) as SearchCompaniesParameters;
 
-      const results = await this.client.searchCompanies(query, limit, activeOnly);
+      this.log(`Searching for companies with query: "${query}", limit: ${limit}, activeOnly: ${activeOnly}, verbose: ${verbose}, pageSize: ${pageSize}`);
+
+      const results = await this.client.searchCompanies(query, pageSize, activeOnly);
 
       if (results.length === 0) {
+        this.log(`No companies found matching "${query}"`);
         return {
           content: [
             {
@@ -58,6 +79,8 @@ export class SearchCompaniesTool implements MCPTool {
           ],
         };
       }
+
+      this.log(`Found ${results.length} companies matching "${query}"`);
 
       const formattedResults = results.map(company => {
         let text = `**${company.title}** (No. ${company.companyNumber})\n`;
@@ -78,20 +101,34 @@ export class SearchCompaniesTool implements MCPTool {
           }
         }
 
+        // Add more details in verbose mode
+        if (verbose) {
+          text += `Company Type: ${company.companyType || 'Unknown'}\n`;
+          
+          if (company.address) {
+            if (company.address.region) text += `Region: ${company.address.region}\n`;
+            if (company.address.country) text += `Country: ${company.address.country}\n`;
+          }
+        }
+
         return text;
       });
+
+      const limitedResults = formattedResults.slice(0, limit);
+      this.log(`Returning ${limitedResults.length} formatted company results`);
 
       return {
         content: [
           {
             type: 'text' as const,
-            text: formattedResults.join('\n'),
+            text: limitedResults.join('\n'),
           },
         ],
       };
     } catch (error) {
       if (error instanceof z.ZodError && error.errors.length > 0) {
         const errorMessage = error.errors[0]?.message || 'Invalid parameters';
+        this.log(`Validation error: ${errorMessage}`);
         return {
           isError: true,
           content: [
@@ -104,6 +141,7 @@ export class SearchCompaniesTool implements MCPTool {
       }
 
       if (error instanceof APIError) {
+        this.log(`API error: ${error.message}`);
         return {
           isError: true,
           content: [
@@ -115,6 +153,7 @@ export class SearchCompaniesTool implements MCPTool {
         };
       }
 
+      this.log(`Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return {
         isError: true,
         content: [

@@ -75,7 +75,7 @@ export class CompaniesHouseMCPServer {
     });
 
     // Handle call_tool requests
-    this.server.setRequestHandler(CallToolRequestSchema, async request => {
+    this.server.setRequestHandler(CallToolRequestSchema, async (request, extra) => {
       const { name, arguments: args } = request.params;
 
       if (!this.tools.has(name)) {
@@ -84,7 +84,17 @@ export class CompaniesHouseMCPServer {
 
       try {
         const tool = this.tools.get(name)!;
-        return await tool.execute(args);
+        const result = await tool.execute(args || {});
+        return {
+          tools: [
+            {
+              name: tool.name,
+              inputSchema: tool.inputSchema,
+              description: tool.description,
+            },
+          ],
+          ...result,
+        };
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
         throw new McpError(

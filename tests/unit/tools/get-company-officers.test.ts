@@ -24,7 +24,7 @@ describe('GetCompanyOfficersTool', () => {
 
   describe('Input Validation', () => {
     it('should validate company number format', async () => {
-      const result = await tool.execute({ companyNumber: 'invalid', activeOnly: true, limit: 35 });
+      const result = await tool.execute({ companyNumber: 'invalid', activeOnly: true, limit: 35, pageSize: 35, verbose: false });
       expect(result.isError).toBe(true);
       expect(result.content[0]?.text).toContain('String must contain exactly 8 character(s)');
     });
@@ -45,7 +45,7 @@ describe('GetCompanyOfficersTool', () => {
 
       mockClient.getCompanyOfficers.mockResolvedValue(mockOfficers);
 
-      const result = await tool.execute({ companyNumber: '00006400', activeOnly: true, limit: 35 });
+      const result = await tool.execute({ companyNumber: '00006400', activeOnly: true, limit: 35, pageSize: 35, verbose: false });
       expect(result.isError).toBeUndefined();
       expect(result.content[0]?.text).toContain('John Smith');
     });
@@ -64,11 +64,13 @@ describe('GetCompanyOfficersTool', () => {
         companyNumber: '00006400',
         activeOnly: true,
         limit: 50,
+        pageSize: 50,
+        verbose: true,
       });
 
       expect(mockClient.getCompanyOfficers).toHaveBeenCalledWith('00006400', {
         activeOnly: true,
-        limit: 50,
+        limit: 50, // This will be updated to use pageSize in the actual call
       });
     });
   });
@@ -109,7 +111,7 @@ describe('GetCompanyOfficersTool', () => {
 
       mockClient.getCompanyOfficers.mockResolvedValue(mockOfficers);
 
-      const result = await tool.execute({ companyNumber: '00006400', activeOnly: true, limit: 35 });
+      const result = await tool.execute({ companyNumber: '00006400', activeOnly: true, limit: 35, pageSize: 35, verbose: false });
       const text = result.content[0]?.text;
 
       expect(text).toContain('Found 2 officers (2 active)');
@@ -144,6 +146,8 @@ describe('GetCompanyOfficersTool', () => {
         companyNumber: '00006400',
         activeOnly: false,
         limit: 35,
+        pageSize: 35,
+        verbose: false,
       });
       const text = result.content[0]?.text;
 
@@ -157,7 +161,7 @@ describe('GetCompanyOfficersTool', () => {
     it('should handle API errors', async () => {
       mockClient.getCompanyOfficers.mockRejectedValue(new Error('Company not found'));
 
-      const result = await tool.execute({ companyNumber: '00006400', activeOnly: true, limit: 35 });
+      const result = await tool.execute({ companyNumber: '00006400', activeOnly: true, limit: 35, pageSize: 35, verbose: false });
       expect(result.isError).toBe(true);
       expect(result.content[0]?.text).toContain('Company not found');
     });
@@ -172,7 +176,7 @@ describe('GetCompanyOfficersTool', () => {
 
       mockClient.getCompanyOfficers.mockResolvedValue(mockOfficers);
 
-      const result = await tool.execute({ companyNumber: '00006400', activeOnly: true, limit: 35 });
+      const result = await tool.execute({ companyNumber: '00006400', activeOnly: true, limit: 35, pageSize: 35, verbose: false });
       expect(result.isError).toBeUndefined();
       expect(result.content[0]?.text).toContain('No officers found');
     });
@@ -191,7 +195,7 @@ describe('GetCompanyOfficersTool', () => {
 
       mockClient.getCompanyOfficers.mockResolvedValue(mockOfficers);
 
-      const result = await tool.execute({ companyNumber: '00006400', activeOnly: true, limit: 35 });
+      const result = await tool.execute({ companyNumber: '00006400', activeOnly: true, limit: 35, pageSize: 35, verbose: false });
       expect(result.content[0]?.text).toContain('Showing 35 of 50 officers');
     });
   });
@@ -223,7 +227,7 @@ describe('GetCompanyOfficersTool', () => {
     it('should get company officers successfully', async () => {
       mockClient.getCompanyOfficers.mockResolvedValue(mockOfficersData);
 
-      const result = await tool.execute({ companyNumber: '12345678', activeOnly: true, limit: 35 });
+      const result = await tool.execute({ companyNumber: '12345678', activeOnly: true, limit: 35, pageSize: 35, verbose: false });
 
       expect(result.isError).toBeUndefined();
       expect(result.content).toHaveLength(1);
@@ -235,26 +239,28 @@ describe('GetCompanyOfficersTool', () => {
     it('should handle no officers found', async () => {
       mockClient.getCompanyOfficers.mockResolvedValue({ items: [], total_results: 0, start_index: 0, items_per_page: 35 });
 
-      const result = await tool.execute({ companyNumber: '12345678', activeOnly: true, limit: 35 });
+      const result = await tool.execute({ companyNumber: '12345678', activeOnly: true, limit: 35, pageSize: 35, verbose: false });
 
       expect(result.isError).toBeUndefined();
       expect(result.content[0]!.text).toContain('No officers found');
     });
 
     it('should handle validation errors', async () => {
-      const result = await tool.execute({ companyNumber: 'invalid', activeOnly: true, limit: 35 });
+      const result = await tool.execute({ companyNumber: 'invalid', activeOnly: true, limit: 35, pageSize: 35, verbose: false });
 
       expect(result.isError).toBe(true);
       expect(result.content[0]!.text).toContain('Error: Invalid input');
     });
+    
+    it('should format verbose output correctly', async () => {
+      mockClient.getCompanyOfficers.mockResolvedValue(mockOfficersData);
 
-    it('should handle API errors', async () => {
-      mockClient.getCompanyOfficers.mockRejectedValue(new Error('API error'));
+      const result = await tool.execute({ companyNumber: '12345678', activeOnly: true, limit: 35, pageSize: 35, verbose: true });
 
-      const result = await tool.execute({ companyNumber: '12345678', activeOnly: true, limit: 35 });
-
-      expect(result.isError).toBe(true);
-      expect(result.content[0]!.text).toContain('Error:');
+      expect(result.isError).toBeUndefined();
+      expect(result.content[0]!.text).toContain('John Smith');
+      // Check for verbose-specific content
+      expect(result.content[0]!.text).toContain('Role Details');
     });
   });
 });
