@@ -3,10 +3,31 @@ import {
   CompanySearchResult,
   OfficersList,
   FilingHistoryList,
+  CompanySearchResponse,
+  ChargesList,
+  PSCList,
+  OfficerSearchResponse
 } from '../types/companies-house.js';
 import { RateLimiter } from './rate-limiter.js';
 import { Cache } from './cache.js';
 import { APIError } from './errors.js';
+
+interface CompanySearchResponseItem {
+  company_number: string;
+  title: string;
+  company_status: string;
+  type: string;
+  company_type?: string;
+  date_of_creation?: string;
+  address?: {
+    premises?: string;
+    address_line_1?: string;
+    postal_code?: string;
+    locality?: string;
+    region?: string;
+    country?: string;
+  };
+}
 
 export class CompaniesHouseClient {
   private apiKey: string;
@@ -34,7 +55,7 @@ export class CompaniesHouseClient {
   /**
    * Make an authenticated HTTP request to the Companies House API
    */
-  private async makeRequest(endpoint: string): Promise<any> {
+  private async makeRequest<T>(endpoint: string): Promise<T> {
     await this.rateLimiter.checkLimit();
 
     const url = `${this.baseUrl}${endpoint}`;
@@ -67,7 +88,7 @@ export class CompaniesHouseClient {
       throw new APIError(message, status);
     }
 
-    return await response.json();
+    return await response.json() as T;
   }
 
   /**
@@ -91,15 +112,15 @@ export class CompaniesHouseClient {
         start_index: '0',
       });
 
-      const data = await this.makeRequest(`/search/companies?${params.toString()}`);
+      const data = await this.makeRequest<CompanySearchResponse>(`/search/companies?${params.toString()}`);
 
       if (!data.items) {
         return [];
       }
 
       const results = data.items
-        .filter((item: any) => !activeOnly || item.company_status === 'active')
-        .map((item: any) => {
+        .filter((item: CompanySearchResponseItem) => !activeOnly || item.company_status === 'active')
+        .map((item: CompanySearchResponseItem): CompanySearchResult => {
           const result: CompanySearchResult = {
             companyNumber: item.company_number,
             title: item.title,
@@ -143,43 +164,30 @@ export class CompaniesHouseClient {
     }
 
     try {
-      const data = await this.makeRequest(`/company/${companyNumber}`);
+      const data = await this.makeRequest<CompanyProfile>(`/company/${companyNumber}`);
 
+      // Ensure all required fields are present and properly typed
       const profile: CompanyProfile = {
         company_name: data.company_name,
         company_number: data.company_number,
         company_status: data.company_status,
         date_of_creation: data.date_of_creation,
-        type: data.type,
+        type: data.type || '', // Ensure type is always a string
       };
 
+      // Add optional fields only if they exist in the response
       if (data.registered_office_address) {
-        profile.registered_office_address = {
-          premises: data.registered_office_address.premises,
-          address_line_1: data.registered_office_address.address_line_1,
-          postal_code: data.registered_office_address.postal_code,
-          locality: data.registered_office_address.locality,
-          region: data.registered_office_address.region,
-          country: data.registered_office_address.country,
-        };
+        profile.registered_office_address = data.registered_office_address;
       }
-
       if (data.accounts) {
-        profile.accounts = {
-          next_accounts: data.accounts.next_accounts,
-          accounting_reference_date: data.accounts.accounting_reference_date,
-          last_accounts: data.accounts.last_accounts,
-        };
+        profile.accounts = data.accounts;
       }
-
       if (data.confirmation_statement) {
         profile.confirmation_statement = data.confirmation_statement;
       }
-
       if (data.sic_codes) {
         profile.sic_codes = data.sic_codes;
       }
-
       if (data.previous_company_names) {
         profile.previous_company_names = data.previous_company_names;
       }
@@ -212,7 +220,7 @@ export class CompaniesHouseClient {
         params.append('register_view', 'true');
       }
 
-      const data = await this.makeRequest(`/company/${companyNumber}/officers?${params.toString()}`);
+      const data = await this.makeRequest<OfficersList>(`/company/${companyNumber}/officers?${params.toString()}`);
 
       this.cache.set(cacheKey, data, 10 * 60); // Cache for 10 minutes
       return data;
@@ -242,7 +250,7 @@ export class CompaniesHouseClient {
         params.append('category', category);
       }
 
-      const data = await this.makeRequest(`/company/${companyNumber}/filing-history?${params.toString()}`);
+      const data = await this.makeRequest<FilingHistoryList>(`/company/${companyNumber}/filing-history?${params.toString()}`);
 
       this.cache.set(cacheKey, data, 2 * 60); // Cache for 2 minutes
       return data;
@@ -254,12 +262,12 @@ export class CompaniesHouseClient {
   async getCompanyCharges(
     companyNumber: string,
     options: { limit?: number; startIndex?: number } = {}
-  ) {
+  ): Promise<ChargesList> {
     const { limit = 25, startIndex = 0 } = options;
     const cacheKey = `charges:${companyNumber}:${limit}:${startIndex}`;
     const cached = this.cache.get(cacheKey);
     if (cached) {
-      return cached;
+      return cached as ChargesList;
     }
 
     try {
@@ -268,7 +276,7 @@ export class CompaniesHouseClient {
         start_index: startIndex.toString(),
       });
 
-      const data = await this.makeRequest(`/company/${companyNumber}/charges?${params.toString()}`);
+      const data = await this.makeRequest<ChargesList>(`/company/${companyNumber}/charges?${params.toString()}`);
 
       this.cache.set(cacheKey, data, 30 * 60); // Cache for 30 minutes
       return data;
@@ -280,12 +288,12 @@ export class CompaniesHouseClient {
   async getPersonsWithSignificantControl(
     companyNumber: string,
     options: { limit?: number; startIndex?: number } = {}
-  ) {
+  ): Promise<PSCList> {
     const { limit = 25, startIndex = 0 } = options;
     const cacheKey = `pscs:${companyNumber}:${limit}:${startIndex}`;
     const cached = this.cache.get(cacheKey);
     if (cached) {
-      return cached;
+      return cached as PSCList;
     }
 
     try {
@@ -294,7 +302,7 @@ export class CompaniesHouseClient {
         start_index: startIndex.toString(),
       });
 
-      const data = await this.makeRequest(`/company/${companyNumber}/persons-with-significant-control?${params.toString()}`);
+      const data = await this.makeRequest<PSCList>(`/company/${companyNumber}/persons-with-significant-control?${params.toString()}`);
 
       this.cache.set(cacheKey, data, 30 * 60); // Cache for 30 minutes
       return data;
@@ -303,12 +311,15 @@ export class CompaniesHouseClient {
     }
   }
 
-  async searchOfficers(query: string, options: { limit?: number; startIndex?: number } = {}) {
+  async searchOfficers(
+    query: string, 
+    options: { limit?: number; startIndex?: number } = {}
+  ): Promise<OfficerSearchResponse> {
     const { limit = 35, startIndex = 0 } = options;
     const cacheKey = `officer-search:${query}:${limit}:${startIndex}`;
     const cached = this.cache.get(cacheKey);
     if (cached) {
-      return cached;
+      return cached as OfficerSearchResponse;
     }
 
     try {
@@ -318,7 +329,7 @@ export class CompaniesHouseClient {
         start_index: startIndex.toString(),
       });
 
-      const data = await this.makeRequest(`/search/officers?${params.toString()}`);
+      const data = await this.makeRequest<OfficerSearchResponse>(`/search/officers?${params.toString()}`);
 
       this.cache.set(cacheKey, data, 5 * 60); // Cache for 5 minutes
       return data;
