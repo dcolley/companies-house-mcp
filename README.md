@@ -145,6 +145,18 @@ npm run test:unit # Run unit tests only
 npm run test:int  # Run integration tests
 ```
 
+#### Integration Tests
+
+Note: Integration tests require a valid Companies House API key. To run integration tests:
+
+```bash
+COMPANIES_HOUSE_API_KEY=your_api_key npm run test:integration
+```
+
+Some tests may be skipped if:
+- No Companies House API key is provided in the environment
+- The runtime doesn't support the Fetch API
+
 ### Code Quality
 
 ```bash
@@ -152,6 +164,10 @@ npm run lint      # Check code style
 npm run typecheck # Check TypeScript types
 npm run format    # Format code
 ```
+
+#### ESLint Configuration
+
+This project uses ESLint v9 with the new flat configuration format. The configuration is in `eslint.config.js`.
 
 ### Project Structure
 
