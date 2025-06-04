@@ -80,6 +80,21 @@ Add to your `claude_desktop_config.json`:
 }
 ```
 
+### Running Locally with Direct Path
+
+For local development, you can point Claude directly to your local build:
+
+```json
+{
+  "mcpServers": {
+    "companies-house": {
+      "command": "node",
+      "args": ["/path/to/your/companies-house-mcp/dist/index.js", "--api-key", "YOUR_API_KEY_HERE"]
+    }
+  }
+}
+```
+
 ## Available Tools
 
 | Tool | Description | Parameters |
