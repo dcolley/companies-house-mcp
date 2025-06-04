@@ -1,54 +1,76 @@
-interface CacheEntry {
-  value: any;
-  expiry: number;
+interface CacheEntry<T> {
+  value: T;
+  expiresAt: number; // Unix timestamp
 }
 
 /**
- * Simple LRU cache implementation
+ * Simple in-memory LRU cache with TTL
  */
 export class Cache {
-  private cache: Map<string, CacheEntry>;
-  private readonly maxSize: number;
+  private items: Map<string, CacheEntry<unknown>> = new Map();
+  private maxSize: number;
 
   constructor(maxSize: number = 1000) {
-    this.cache = new Map();
     this.maxSize = maxSize;
   }
 
-  get(key: string): any | null {
-    const entry = this.cache.get(key);
+  /**
+   * Get a value from the cache
+   */
+  get<T>(key: string): T | null {
+    const entry = this.items.get(key);
     if (!entry) {
       return null;
     }
 
-    if (Date.now() > entry.expiry) {
-      this.cache.delete(key);
+    if (entry.expiresAt < Date.now()) {
+      this.items.delete(key);
       return null;
     }
 
-    return entry.value;
+    // Move to end of map (most recently used)
+    this.items.delete(key);
+    this.items.set(key, entry);
+
+    return entry.value as T;
   }
 
-  set(key: string, value: any, ttlSeconds: number): void {
-    // Remove oldest entries if cache is full
-    if (this.cache.size >= this.maxSize) {
-      const oldestKey = this.cache.keys().next().value;
+  /**
+   * Set a value in the cache with a TTL
+   */
+  set<T>(key: string, value: T, ttlSeconds: number): void {
+    // If we're at capacity, remove the least recently used item
+    if (this.items.size >= this.maxSize) {
+      const oldestKey = this.items.keys().next().value;
       if (oldestKey !== undefined) {
-        this.cache.delete(oldestKey);
+        this.items.delete(oldestKey);
       }
     }
 
-    this.cache.set(key, {
+    this.items.set(key, {
       value,
-      expiry: Date.now() + ttlSeconds * 1000,
+      expiresAt: Date.now() + (ttlSeconds * 1000),
     });
   }
 
-  clear(): void {
-    this.cache.clear();
+  /**
+   * Delete a value from the cache
+   */
+  delete(key: string): void {
+    this.items.delete(key);
   }
 
+  /**
+   * Clear all items from the cache
+   */
+  clear(): void {
+    this.items.clear();
+  }
+
+  /**
+   * Get the current size of the cache
+   */
   size(): number {
-    return this.cache.size;
+    return this.items.size;
   }
 }

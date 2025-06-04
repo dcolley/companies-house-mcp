@@ -1,28 +1,32 @@
 # Companies House MCP Server
 
-> **Unofficial** UK Companies House MCP server providing AI assistants with access to UK company data.
+UK Companies House API integration for Model Context Protocol (MCP) - the standard for connecting AI assistants to external data sources.
 
 ## Overview
 
-This is a Model Context Protocol (MCP) server that provides standardized access to the UK Companies House Public Data API. It enables AI assistants like Claude to search for companies, retrieve company profiles, officer information, filing history, and more.
-
-**Status**: 🚧 Under Development
+This MCP server provides AI assistants with access to UK Companies House public data, enabling them to search for companies, retrieve company profiles, officer information, filing history, and more.
 
 ## Features
 
 - 🔍 **Company Search** - Find companies by name or number
 - 📊 **Company Profiles** - Detailed company information and status
 - 👥 **Officer Information** - Directors and secretaries data
-- 📄 **Filing History** - Recent filings and compliance activity
-- 💰 **Charges** - Financial charges and securities information
-- 🏢 **PSC Data** - Persons with Significant Control information
-- 🔎 **Officer Search** - Find companies by director/officer name
+- 📄 **Filing History** - Recent filings and documents
+- 💰 **Charges** - Outstanding charges and mortgages
+- 🏢 **PSC Data** - Persons with Significant Control
+- 🔎 **Officer Search** - Find officers across companies
+
+### Response Modes
+
+All tools support a `verbose` parameter for detailed or compact responses:
+- **Compact mode** (default): Essential information only
+- **Verbose mode**: Full details including all available fields
 
 ## Installation
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18 or higher
 - Companies House API key (free from [developer.company-information.service.gov.uk](https://developer.company-information.service.gov.uk/))
 
 ### Quick Start
@@ -58,9 +62,7 @@ npm test
 npm run dev
 ```
 
-## Usage
-
-### With Claude Desktop
+## Usage with Claude Desktop
 
 Add to your `claude_desktop_config.json`:
 
@@ -78,54 +80,94 @@ Add to your `claude_desktop_config.json`:
 }
 ```
 
-### Example Queries
-
-Once connected, you can ask Claude:
-
-- "Search for companies named Acme"
-- "Get the profile for company number 12345678"
-- "Who are the directors of Acme Corporation Ltd?"
-- "What filings has company 12345678 made recently?"
-- "Does company 12345678 have any charges against it?"
-
 ## Available Tools
 
-| Tool | Description | Inputs |
-|------|-------------|---------|
-| `search_companies` | Search companies by name | query, limit, activeOnly |
-| `get_company_profile` | Get detailed company info | companyNumber |
-| `get_company_officers` | List company officers | companyNumber, activeOnly, limit |
-| `get_filing_history` | Get filing history | companyNumber, category, limit |
-| `get_company_charges` | Get company charges | companyNumber, limit |
-| `get_persons_with_significant_control` | Get PSC information | companyNumber, limit |
-| `search_officers` | Search officers by name | query, limit, activeOnly |
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `search_companies` | Search companies by name | `query`, `limit`, `activeOnly`, `verbose` |
+| `get_company_profile` | Get detailed company info | `companyNumber`, `verbose` |
+| `get_company_officers` | List company officers | `companyNumber`, `activeOnly`, `limit`, `verbose` |
+| `get_filing_history` | Get filing history | `companyNumber`, `category`, `limit`, `startIndex`, `verbose` |
+| `get_company_charges` | Get company charges | `companyNumber`, `limit`, `startIndex`, `verbose` |
+| `get_persons_with_significant_control` | Get PSC information | `companyNumber`, `limit`, `startIndex`, `verbose` |
+| `search_officers` | Search officers by name | `query`, `limit`, `startIndex`, `verbose` |
+
+### Pagination
+
+Tools that return multiple results support pagination:
+- `limit`: Number of results per page (max 100)
+- `startIndex`: Starting position for results
+
+## Example Queries
+
+Once connected to Claude, you can ask:
+
+- "Search for companies named Tesco"
+- "Get the profile for company number 00445790"
+- "Who are the directors of company 00445790?"
+- "Show me recent filings for company 00445790 in verbose mode"
+- "Does company 00445790 have any outstanding charges?"
 
 ## Configuration
 
 ### Environment Variables
 
 ```bash
-COMPANIES_HOUSE_API_KEY=your_api_key_here     # Required
-CH_MCP_RATE_LIMIT=500                         # Optional: requests per 5 minutes
-CH_MCP_CACHE_SIZE=1000                        # Optional: cache size
-CH_MCP_LOG_LEVEL=info                         # Optional: logging level
+COMPANIES_HOUSE_API_KEY=your_api_key_here  # Required
+DEBUG=true                                 # Enable debug logging (optional)
 ```
 
-### CLI Options
+### Rate Limiting
+
+- Default: 500 requests per 5 minutes
+- Automatic rate limiting prevents API quota exceeded errors
+- Responses are cached to reduce API calls
+
+## Docker Support (Optional)
+
+A Dockerfile is included for containerized deployment:
 
 ```bash
-companies-house-mcp --help
+# Build image
+docker build -t companies-house-mcp .
 
-Options:
-  --api-key <key>        Companies House API key
-  --rate-limit <num>     Max requests per 5 minutes (default: 500)
-  --cache-size <num>     Max cache entries (default: 1000)
-  --log-level <level>    Logging level (default: info)
-  --no-cache            Disable response caching
-  --version             Show version number
+# Run container
+docker run -e COMPANIES_HOUSE_API_KEY=your_key companies-house-mcp
 ```
 
 ## Development
+
+### Running Tests
+
+```bash
+npm test          # Run all tests
+npm run test:unit # Run unit tests only
+npm run test:int  # Run integration tests
+```
+
+#### Integration Tests
+
+Note: Integration tests require a valid Companies House API key. To run integration tests:
+
+```bash
+COMPANIES_HOUSE_API_KEY=your_api_key npm run test:integration
+```
+
+Some tests may be skipped if:
+- No Companies House API key is provided in the environment
+- The runtime doesn't support the Fetch API
+
+### Code Quality
+
+```bash
+npm run lint      # Check code style
+npm run typecheck # Check TypeScript types
+npm run format    # Format code
+```
+
+#### ESLint Configuration
+
+This project uses ESLint v9 with the new flat configuration format. The configuration is in `eslint.config.js`.
 
 ### Project Structure
 
@@ -133,78 +175,44 @@ Options:
 companies-house-mcp/
 ├── src/
 │   ├── tools/         # MCP tool implementations
-│   ├── lib/           # Shared utilities
-│   ├── types/         # TypeScript definitions
+│   ├── lib/           # Core utilities (client, cache, rate limiter)
+│   ├── types/         # TypeScript type definitions
 │   └── index.ts       # CLI entry point
-├── tests/             # Test files
-├── docs/              # Documentation
-└── examples/          # Usage examples
+├── tests/
+│   ├── unit/          # Unit tests
+│   ├── integration/   # Integration tests
+│   └── fixtures/      # Test data
 ```
 
-### Key Dependencies
+## Troubleshooting
 
-- **@modelcontextprotocol/sdk** - Official MCP TypeScript SDK
-- **@companieshouse/api-sdk-node** - Official Companies House API client
-- **zod** - Runtime type validation
-- **jest** - Testing framework
+### Debug Mode
 
-### Development Scripts
+Enable debug logging to troubleshoot issues:
 
 ```bash
-npm run build         # Compile TypeScript
-npm test              # Run tests
-npm run test:watch    # Run tests in watch mode
-npm run lint          # Lint code
-npm run dev           # Development server
+DEBUG=true companies-house-mcp --api-key YOUR_KEY
 ```
 
-### Testing
+### Common Issues
 
-```bash
-# Unit tests
-npm test
-
-# Integration tests with real API
-npm run test:integration
-
-# Test with MCP Inspector
-npm run debug
-```
-
-## API Reference
-
-See [docs/companies-house-api-reference.md](docs/companies-house-api-reference.md) for detailed API documentation.
+1. **"Invalid API Key"** - Verify your API key is correct and active
+2. **"Rate limit exceeded"** - Wait a few minutes, the server has built-in rate limiting
+3. **"Company not found"** - Check the company number format (8 characters, padded with zeros)
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/new-tool`
-3. Make your changes and add tests
-4. Ensure tests pass: `npm test`
-5. Submit a pull request
-
-See [docs/development-guide.md](docs/development-guide.md) for detailed development instructions.
-
-## Rate Limits
-
-- **Default**: 500 requests per 5 minutes (conservative buffer)
-- **Companies House Limit**: 600 requests per 5 minutes
-- **Caching**: Responses cached 2-30 minutes depending on data type
-
-## License
-
-MIT License - see [LICENSE](LICENSE) file for details.
-
-## Disclaimer
-
-This is an **unofficial** implementation. It is not affiliated with or endorsed by Companies House or the UK Government.
+Contributions are welcome! Please ensure:
+- All tests pass (`npm test`)
+- Code is properly typed (no `any` types)
+- Follow the existing code style
+- Add tests for new features
 
 ## Support
 
-- 📚 [Documentation](docs/)
-- 🐛 [Issue Tracker](https://github.com/your-username/companies-house-mcp/issues)
-- 💬 [Discussions](https://github.com/your-username/companies-house-mcp/discussions)
+- 📚 [MCP Documentation](https://modelcontextprotocol.io)
+- 🐛 [Report Issues](https://github.com/your-username/companies-house-mcp/issues)
 
 ---
 
-**Built with ❤️ for the MCP community**
+Built with the Model Context Protocol SDK

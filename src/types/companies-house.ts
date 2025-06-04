@@ -1,7 +1,11 @@
 // Companies House API TypeScript interfaces
 // This will be implemented in Task 3
 
-import { Resource } from '@companieshouse/api-sdk-node';
+// Define our own Resource interface to replace the SDK one
+export interface Resource<T> {
+  resource: T;
+  httpStatusCode: number;
+}
 
 export interface ApiClient {
   search: {

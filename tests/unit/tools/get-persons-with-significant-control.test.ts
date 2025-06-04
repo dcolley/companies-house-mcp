@@ -1,31 +1,39 @@
 import { GetPersonsWithSignificantControlTool } from '../../../src/tools/get-persons-with-significant-control.js';
 import { CompaniesHouseClient } from '../../../src/lib/client.js';
+import { PSCList } from '../../../src/types/companies-house.js';
+import companiesFixture from '../../fixtures/companies.json';
 
 jest.mock('../../../src/lib/client.js');
 
 describe('GetPersonsWithSignificantControlTool', () => {
   let tool: GetPersonsWithSignificantControlTool;
   let mockClient: jest.Mocked<CompaniesHouseClient>;
+  const mockApiKey = 'test-api-key';
 
   beforeEach(() => {
     mockClient = {
       getPersonsWithSignificantControl: jest.fn(),
     } as any;
-    tool = new GetPersonsWithSignificantControlTool(mockClient);
+    
+    // Make the constructor return our mock instance
+    (CompaniesHouseClient as jest.Mock).mockImplementation(() => mockClient);
+    
+    // Create the tool with the API key
+    tool = new GetPersonsWithSignificantControlTool(mockApiKey);
   });
 
   describe('execute', () => {
-    const mockPSCData = {
+    // Create a properly typed mock data object
+    const mockPSCData: PSCList = {
       items: [
         {
           name: 'John Doe',
-          kind: 'individual-person-with-significant-control',
-          notified_on: '2020-01-01',
-          natures_of_control: ['ownership-of-shares-25-to-50-percent'],
+          notifiedOn: '2020-01-01',
+          natureOfControl: ['ownership-of-shares-25-to-50-percent'],
           nationality: 'British',
-          country_of_residence: 'United Kingdom',
-          date_of_birth: { month: 1, year: 1980 },
+          countryOfResidence: 'United Kingdom',
           address: {
+            line1: 'Address Line 1',
             locality: 'London',
             region: 'Greater London',
             country: 'United Kingdom',
@@ -34,6 +42,7 @@ describe('GetPersonsWithSignificantControlTool', () => {
       ],
       total_results: 1,
       start_index: 0,
+      items_per_page: 25
     };
 
     it('should get PSCs successfully', async () => {
@@ -48,7 +57,6 @@ describe('GetPersonsWithSignificantControlTool', () => {
         '**Persons with Significant Control for 12345678**'
       );
       expect(result.content[0]!.text).toContain('John Doe');
-      expect(result.content[0]!.text).toContain('Type: Individual Person With Significant Control');
       expect(result.content[0]!.text).toContain('Nationality: British');
     });
 
@@ -57,6 +65,7 @@ describe('GetPersonsWithSignificantControlTool', () => {
         items: [],
         total_results: 0,
         start_index: 0,
+        items_per_page: 25
       });
 
       const result = await tool.execute({ companyNumber: '12345678', limit: 25, startIndex: 0 });
