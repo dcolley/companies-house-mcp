@@ -241,7 +241,10 @@ export interface CompanyCharge {
   createdOn: string;
   deliveredOn: string;
   satisfiedOn?: string;
-  particulars?: string;
+  particulars?: {
+    type: string;
+    description: string;
+  } | string;
   securedAmount?: string;
 }
 

@@ -125,7 +125,9 @@ export class GetCompanyChargesTool implements MCPTool {
         lines.push(`Type: ${charge.classification.description}`);
       }
 
-      if (charge.particulars) {
+      if (charge.particulars && typeof charge.particulars === 'object' && 'description' in charge.particulars) {
+        lines.push(`Details: ${charge.particulars.description}`);
+      } else if (charge.particulars && typeof charge.particulars === 'string') {
         lines.push(`Details: ${charge.particulars}`);
       }
 
