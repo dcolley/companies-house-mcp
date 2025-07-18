@@ -43,7 +43,7 @@ companies-house-mcp --api-key YOUR_API_KEY
 
 ```bash
 # Clone repository
-git clone https://github.com/your-username/companies-house-mcp
+git clone https://github.com/modelcontextprotocol/companies-house-mcp
 cd companies-house-mcp
 
 # Install dependencies
@@ -226,7 +226,7 @@ Contributions are welcome! Please ensure:
 ## Support
 
 - 📚 [MCP Documentation](https://modelcontextprotocol.io)
-- 🐛 [Report Issues](https://github.com/your-username/companies-house-mcp/issues)
+- 🐛 [Report Issues](https://github.com/modelcontextprotocol/companies-house-mcp/issues)
 
 ---
 

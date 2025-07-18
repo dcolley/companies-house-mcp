@@ -40,9 +40,9 @@ describe('CompaniesHouseClient', () => {
       // Make sure we have fixture data
       expect(companiesFixture.searchResults).toBeDefined();
       expect(companiesFixture.searchResults.length).toBeGreaterThan(0);
-      
+
       const fixtureCompany = companiesFixture.searchResults[0];
-      
+
       // Prepare mock response using fixture - with null checks
       const mockApiResponse = {
         items: [
@@ -52,18 +52,20 @@ describe('CompaniesHouseClient', () => {
             company_status: fixtureCompany?.companyStatus || '',
             type: fixtureCompany?.companyType || '',
             date_of_creation: fixtureCompany?.dateOfCreation || '',
-            address: fixtureCompany?.address ? {
-              premises: fixtureCompany.address.line1 || '',
-              address_line_1: fixtureCompany.address.line2 || '',
-              postal_code: fixtureCompany.address.postalCode || '',
-              locality: fixtureCompany.address.locality || '',
-              region: fixtureCompany.address.region || '',
-            } : undefined,
+            address: fixtureCompany?.address
+              ? {
+                  premises: fixtureCompany.address.line1 || '',
+                  address_line_1: fixtureCompany.address.line2 || '',
+                  postal_code: fixtureCompany.address.postalCode || '',
+                  locality: fixtureCompany.address.locality || '',
+                  region: fixtureCompany.address.region || '',
+                }
+              : undefined,
           },
         ],
         total_results: 1,
         items_per_page: 20,
-        page_number: 1
+        page_number: 1,
       };
       mockFetchResponse.mockResolvedValue(mockApiResponse);
 
@@ -102,7 +104,7 @@ describe('CompaniesHouseClient', () => {
         ],
         total_results: 1,
         items_per_page: 20,
-        page_number: 1
+        page_number: 1,
       };
       mockFetchResponse.mockResolvedValue(mockApiResponse);
 
@@ -117,11 +119,11 @@ describe('CompaniesHouseClient', () => {
     });
 
     it('should return empty array when no items returned', async () => {
-      mockFetchResponse.mockResolvedValue({ 
+      mockFetchResponse.mockResolvedValue({
         items: [],
         total_results: 0,
         items_per_page: 20,
-        page_number: 1
+        page_number: 1,
       });
 
       const results = await client.searchCompanies('nonexistent company');
@@ -147,7 +149,7 @@ describe('CompaniesHouseClient', () => {
         ],
         total_results: 2,
         items_per_page: 20,
-        page_number: 1
+        page_number: 1,
       };
       mockFetchResponse.mockResolvedValue(mockApiResponse);
 
@@ -205,7 +207,9 @@ describe('CompaniesHouseClient', () => {
         status: 401,
       });
 
-      await expect(client.searchCompanies('test')).rejects.toThrow('Invalid Companies House API key');
+      await expect(client.searchCompanies('test')).rejects.toThrow(
+        'Invalid Companies House API key'
+      );
     });
 
     it('should handle 404 not found error', async () => {
@@ -232,7 +236,9 @@ describe('CompaniesHouseClient', () => {
         status: 500,
       });
 
-      await expect(client.searchCompanies('test')).rejects.toThrow('Companies House API service error');
+      await expect(client.searchCompanies('test')).rejects.toThrow(
+        'Companies House API service error'
+      );
     });
 
     it('should handle general fetch errors', async () => {

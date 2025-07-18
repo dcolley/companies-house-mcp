@@ -14,10 +14,10 @@ describe('GetPersonsWithSignificantControlTool', () => {
     mockClient = {
       getPersonsWithSignificantControl: jest.fn(),
     } as any;
-    
+
     // Make the constructor return our mock instance
     (CompaniesHouseClient as jest.Mock).mockImplementation(() => mockClient);
-    
+
     // Create the tool with the API key
     tool = new GetPersonsWithSignificantControlTool(mockApiKey);
   });
@@ -42,7 +42,7 @@ describe('GetPersonsWithSignificantControlTool', () => {
       ],
       total_results: 1,
       start_index: 0,
-      items_per_page: 25
+      items_per_page: 25,
     };
 
     it('should get PSCs successfully', async () => {
@@ -65,7 +65,7 @@ describe('GetPersonsWithSignificantControlTool', () => {
         items: [],
         total_results: 0,
         start_index: 0,
-        items_per_page: 25
+        items_per_page: 25,
       });
 
       const result = await tool.execute({ companyNumber: '12345678', limit: 25, startIndex: 0 });

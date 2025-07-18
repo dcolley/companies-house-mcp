@@ -31,7 +31,7 @@ const inputSchema = {
     verbose: {
       type: 'boolean',
       description: 'Return more detailed information about each officer (default: false)',
-    }
+    },
   },
   required: ['companyNumber'],
 };
@@ -67,14 +67,16 @@ export class GetCompanyOfficersTool implements MCPTool {
     try {
       // Validate input
       const { companyNumber, activeOnly, limit, pageSize, verbose } = zodSchema.parse(args);
-      this.log(`Getting officers for company ${companyNumber}, activeOnly: ${activeOnly}, limit: ${limit}, pageSize: ${pageSize}, verbose: ${verbose}`);
+      this.log(
+        `Getting officers for company ${companyNumber}, activeOnly: ${activeOnly}, limit: ${limit}, pageSize: ${pageSize}, verbose: ${verbose}`
+      );
 
       // Fetch officers
-      const officers = await this.client.getCompanyOfficers(companyNumber, { 
-        activeOnly, 
-        limit: pageSize // Use pageSize for API requests
+      const officers = await this.client.getCompanyOfficers(companyNumber, {
+        activeOnly,
+        limit: pageSize, // Use pageSize for API requests
       });
-      
+
       this.log(`Received ${officers.items?.length || 0} officers out of ${officers.total_results}`);
 
       // Format response
@@ -102,7 +104,9 @@ export class GetCompanyOfficersTool implements MCPTool {
       }
 
       // Handle API errors
-      this.log(`Error fetching company officers: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.log(
+        `Error fetching company officers: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
       return {
         isError: true,
         content: [
@@ -117,7 +121,7 @@ export class GetCompanyOfficersTool implements MCPTool {
 
   private formatOfficersList(officers: OfficersList, limit: number, verbose: boolean = false) {
     this.log(`Formatting officers list, limit: ${limit}, verbose: ${verbose}`);
-    
+
     if (!officers.items?.length) {
       return 'No officers found for this company.';
     }
@@ -166,23 +170,26 @@ export class GetCompanyOfficersTool implements MCPTool {
       // Add any other officer details that might be present in the raw API response
       // Currently we don't have these fields in our Officer interface
       // But we can add more verbose information about the role
-      
+
       if (officer.officer_role) {
         let roleInfo = '';
-        
+
         if (officer.officer_role.includes('director')) {
-          roleInfo += 'This person is a director of the company. Directors are responsible for running the company and can be held personally liable for company actions.';
+          roleInfo +=
+            'This person is a director of the company. Directors are responsible for running the company and can be held personally liable for company actions.';
         } else if (officer.officer_role.includes('secretary')) {
-          roleInfo += 'This person is a company secretary. The secretary handles administrative responsibilities but generally has fewer legal obligations than directors.';
+          roleInfo +=
+            'This person is a company secretary. The secretary handles administrative responsibilities but generally has fewer legal obligations than directors.';
         } else if (officer.officer_role.includes('llp-member')) {
-          roleInfo += 'This person is a member of the Limited Liability Partnership. LLP members share management responsibilities.';
+          roleInfo +=
+            'This person is a member of the Limited Liability Partnership. LLP members share management responsibilities.';
         }
-        
+
         if (roleInfo) {
           sections.push(`Role Details: ${roleInfo}`);
         }
       }
-      
+
       // Display full address details more prominently in verbose mode
       if (officer.address) {
         const addressLines = [];
@@ -193,7 +200,7 @@ export class GetCompanyOfficersTool implements MCPTool {
         if (officer.address.region) addressLines.push(officer.address.region);
         if (officer.address.postal_code) addressLines.push(officer.address.postal_code);
         if (officer.address.country) addressLines.push(officer.address.country);
-        
+
         if (addressLines.length > 0) {
           sections.push(`Full Address:\n${addressLines.join('\n')}`);
         }

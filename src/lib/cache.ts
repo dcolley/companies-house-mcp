@@ -49,7 +49,7 @@ export class Cache {
 
     this.items.set(key, {
       value,
-      expiresAt: Date.now() + (ttlSeconds * 1000),
+      expiresAt: Date.now() + ttlSeconds * 1000,
     });
   }
 

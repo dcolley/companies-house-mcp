@@ -14,8 +14,8 @@ const inputSchema = {
     },
     verbose: {
       type: 'boolean',
-      description: 'Return more detailed information about the company (default: false)'
-    }
+      description: 'Return more detailed information about the company (default: false)',
+    },
   },
   required: ['companyNumber'],
 };
@@ -79,7 +79,9 @@ export class GetCompanyProfileTool implements MCPTool {
       }
 
       // Handle API errors
-      this.log(`Error fetching company profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.log(
+        `Error fetching company profile: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
       return {
         isError: true,
         content: [
@@ -94,7 +96,7 @@ export class GetCompanyProfileTool implements MCPTool {
 
   private formatCompanyProfile(profile: CompanyProfile, verbose: boolean = false) {
     this.log(`Formatting company profile for ${profile.company_name}, verbose: ${verbose}`);
-    
+
     const sections = [
       // Company header
       `**${profile.company_name}** (No. ${profile.company_number})`,
@@ -138,19 +140,25 @@ export class GetCompanyProfileTool implements MCPTool {
       if (profile.sic_codes && profile.sic_codes.length > 0) {
         sections.push(`**SIC Codes**: ${profile.sic_codes.join(', ')}`);
       }
-      
+
       if (profile.previous_company_names && profile.previous_company_names.length > 0) {
-        const previousNames = profile.previous_company_names.map(name => 
-          `${name.name} (from ${formatDate(name.effective_from)} to ${formatDate(name.ceased_on)})`
-        ).join('\n- ');
+        const previousNames = profile.previous_company_names
+          .map(
+            name =>
+              `${name.name} (from ${formatDate(name.effective_from)} to ${formatDate(name.ceased_on)})`
+          )
+          .join('\n- ');
         sections.push(`**Previous Names**:\n- ${previousNames}`);
       }
 
       if (profile.links) {
-        sections.push('**Additional Information Available**:' + 
-          (profile.links.filing_history ? '\n- Filing History' : '') +
-          (profile.links.officers ? '\n- Officers' : '') +
-          (profile.links.persons_with_significant_control_statements ? '\n- Persons with Significant Control' : '')
+        sections.push(
+          '**Additional Information Available**:' +
+            (profile.links.filing_history ? '\n- Filing History' : '') +
+            (profile.links.officers ? '\n- Officers' : '') +
+            (profile.links.persons_with_significant_control_statements
+              ? '\n- Persons with Significant Control'
+              : '')
         );
       }
     }

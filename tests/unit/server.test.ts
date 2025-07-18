@@ -27,7 +27,7 @@ describe('CompaniesHouseMCPServer', () => {
     it('should create server with default name and version', () => {
       const serverInfo = server.getServerInfo();
       expect(serverInfo.name).toBe('companies-house-mcp');
-      expect(serverInfo.version).toBe('0.1.0');
+      expect(serverInfo.version).toBe('1.0.0');
       expect(serverInfo.toolCount).toBe(0);
     });
 
@@ -140,7 +140,7 @@ describe('CompaniesHouseMCPServer', () => {
     it('should register default placeholder tools when API key provided', () => {
       const serverWithApiKey = new CompaniesHouseMCPServer(
         'companies-house-mcp',
-        '0.1.0',
+        '1.0.0',
         mockApiKey
       );
       const serverInfo = serverWithApiKey.getServerInfo();
@@ -150,7 +150,7 @@ describe('CompaniesHouseMCPServer', () => {
     it('should include search_companies tool when API key provided', () => {
       const serverWithApiKey = new CompaniesHouseMCPServer(
         'companies-house-mcp',
-        '0.1.0',
+        '1.0.0',
         mockApiKey
       );
       expect(serverWithApiKey.getServerInfo().toolCount).toBeGreaterThan(0);
@@ -159,7 +159,7 @@ describe('CompaniesHouseMCPServer', () => {
     it('should include get_company_profile tool when API key provided', () => {
       const serverWithApiKey = new CompaniesHouseMCPServer(
         'companies-house-mcp',
-        '0.1.0',
+        '1.0.0',
         mockApiKey
       );
       expect(serverWithApiKey.getServerInfo().toolCount).toBeGreaterThan(0);

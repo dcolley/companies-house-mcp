@@ -23,11 +23,7 @@ export class CompaniesHouseError extends Error {
  * Error thrown when the API returns an error response
  */
 export class APIError extends CompaniesHouseError {
-  constructor(
-    message: string,
-    status: number = 500,
-    code: string = 'API_ERROR'
-  ) {
+  constructor(message: string, status: number = 500, code: string = 'API_ERROR') {
     super(message, code, status);
     this.name = 'APIError';
   }
@@ -107,9 +103,7 @@ export class NotFoundError extends CompaniesHouseError {
  * Error thrown when rate limiting is hit
  */
 export class RateLimitError extends CompaniesHouseError {
-  constructor(
-    message: string = 'Rate limit exceeded. Please try again later'
-  ) {
+  constructor(message: string = 'Rate limit exceeded. Please try again later') {
     super(message, 'RATE_LIMIT_EXCEEDED', 429);
     this.name = 'RateLimitError';
   }
@@ -119,9 +113,7 @@ export class RateLimitError extends CompaniesHouseError {
  * Error thrown for configuration issues
  */
 export class ConfigurationError extends CompaniesHouseError {
-  constructor(
-    message: string
-  ) {
+  constructor(message: string) {
     super(message, 'CONFIGURATION_ERROR', 500);
     this.name = 'ConfigurationError';
   }

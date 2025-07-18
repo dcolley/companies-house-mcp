@@ -14,10 +14,10 @@ describe('GetCompanyChargesTool', () => {
     mockClient = {
       getCompanyCharges: jest.fn(),
     } as any;
-    
+
     // Make the constructor return our mock instance
     (CompaniesHouseClient as jest.Mock).mockImplementation(() => mockClient);
-    
+
     // Create the tool with the API key
     tool = new GetCompanyChargesTool(mockApiKey);
   });
@@ -35,7 +35,7 @@ describe('GetCompanyChargesTool', () => {
       })),
       total_count: companiesFixture.chargesList.total_count,
       start_index: companiesFixture.chargesList.start_index,
-      items_per_page: companiesFixture.chargesList.items_per_page
+      items_per_page: companiesFixture.chargesList.items_per_page,
     };
 
     it('should get company charges successfully', async () => {
@@ -54,7 +54,7 @@ describe('GetCompanyChargesTool', () => {
         items: [],
         total_count: 0,
         start_index: 0,
-        items_per_page: 25
+        items_per_page: 25,
       });
 
       const result = await tool.execute({ companyNumber: '12345678', limit: 25, startIndex: 0 });

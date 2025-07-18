@@ -2,6 +2,14 @@ import js from '@eslint/js';
 import globals from 'globals';
 
 export default [
+  {
+    ignores: [
+      'dist/**',
+      'node_modules/**',
+      'coverage/**',
+      '*.js'
+    ]
+  },
   js.configs.recommended,
   {
     languageOptions: {
@@ -19,12 +27,6 @@ export default [
       'no-var': 'error',
       'no-unused-vars': 'off',
       'no-undef': 'off'
-    },
-    ignores: [
-      'dist/**',
-      'node_modules/**',
-      'coverage/**',
-      '*.js'
-    ]
+    }
   }
 ]; 

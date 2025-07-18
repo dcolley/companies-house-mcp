@@ -20,7 +20,7 @@ class CompaniesHouseCLI {
     this.program
       .name('companies-house-mcp')
       .description('Companies House MCP Server - Provides UK company data to AI assistants')
-      .version('0.1.0');
+      .version('1.0.0');
 
     this.program
       .option('--api-key <key>', 'Companies House API key (or set COMPANIES_HOUSE_API_KEY env var)')
@@ -98,7 +98,7 @@ class CompaniesHouseCLI {
       }
 
       // Create and start server
-      serverInstance = new CompaniesHouseMCPServer('companies-house-mcp', '0.1.0', apiKey);
+      serverInstance = new CompaniesHouseMCPServer('companies-house-mcp', '1.0.0', apiKey);
       await serverInstance.start();
     } catch (error) {
       this.logError(
@@ -115,7 +115,7 @@ class CompaniesHouseCLI {
   private showInfo(): void {
     const info = [
       'Companies House MCP Server',
-      'Version: 0.1.0',
+      'Version: 1.0.0',
       'Description: Provides UK Companies House data to AI assistants',
       '',
       'Environment Variables:',

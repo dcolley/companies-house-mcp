@@ -17,7 +17,7 @@ describe('GetFilingHistoryTool', () => {
 
     // Make the constructor return our mock instance
     (CompaniesHouseClient as jest.Mock).mockImplementation(() => mockClient);
-    
+
     // Create the tool with the API key
     tool = new GetFilingHistoryTool(mockApiKey);
   });

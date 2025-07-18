@@ -6,16 +6,16 @@ import {
   CompanySearchResponse,
   ChargesList,
   PSCList,
-  OfficerSearchResponse
+  OfficerSearchResponse,
 } from '../types/companies-house.js';
 import { RateLimiter } from './rate-limiter.js';
 import { Cache } from './cache.js';
-import { 
-  APIError, 
-  ValidationError, 
+import {
+  APIError,
+  ValidationError,
   ConfigurationError,
   CompaniesHouseError,
-  NotFoundError
+  NotFoundError,
 } from './errors.js';
 
 interface CompanySearchResponseItem {
@@ -80,8 +80,8 @@ export class CompaniesHouseClient {
       this.log(`Fetching from ${url}`);
       const response = await fetch(url, {
         headers: {
-          'Authorization': `Basic ${Buffer.from(this.apiKey + ':').toString('base64')}`,
-          'Accept': 'application/json',
+          Authorization: `Basic ${Buffer.from(this.apiKey + ':').toString('base64')}`,
+          Accept: 'application/json',
         },
       });
 
@@ -92,17 +92,17 @@ export class CompaniesHouseClient {
       }
 
       this.log('Request completed successfully');
-      return await response.json() as T;
+      return (await response.json()) as T;
     } catch (error) {
       if (error instanceof APIError) {
         throw error;
       }
-      
+
       if (error instanceof Error) {
         this.log(`Network error: ${error.message}`);
         throw new APIError(`Network error: ${error.message}`, 500, 'NETWORK_ERROR');
       }
-      
+
       this.log('Unknown error occurred during API request');
       throw new APIError('Unknown error occurred during API request', 500);
     }
@@ -116,11 +116,13 @@ export class CompaniesHouseClient {
     limit: number = 20,
     activeOnly: boolean = true
   ): Promise<CompanySearchResult[]> {
-    this.log(`Searching companies with query: "${query}", limit: ${limit}, activeOnly: ${activeOnly}`);
+    this.log(
+      `Searching companies with query: "${query}", limit: ${limit}, activeOnly: ${activeOnly}`
+    );
     if (!query || query.trim() === '') {
       throw new ValidationError('Search query cannot be empty', 'query');
     }
-    
+
     const cacheKey = `search:${query}:${limit}:${activeOnly}`;
     const cached = this.cache.get<CompanySearchResult[]>(cacheKey);
     if (cached) {
@@ -136,7 +138,9 @@ export class CompaniesHouseClient {
       });
 
       this.log(`Fetching company search results with params: ${params.toString()}`);
-      const data = await this.makeRequest<CompanySearchResponse>(`/search/companies?${params.toString()}`);
+      const data = await this.makeRequest<CompanySearchResponse>(
+        `/search/companies?${params.toString()}`
+      );
 
       if (!data.items) {
         this.log('No items found in search response');
@@ -145,7 +149,9 @@ export class CompaniesHouseClient {
 
       this.log(`Received ${data.items.length} companies from API`);
       const results = data.items
-        .filter((item: CompanySearchResponseItem) => !activeOnly || item.company_status === 'active')
+        .filter(
+          (item: CompanySearchResponseItem) => !activeOnly || item.company_status === 'active'
+        )
         .map((item: CompanySearchResponseItem): CompanySearchResult => {
           const result: CompanySearchResult = {
             companyNumber: item.company_number,
@@ -176,11 +182,16 @@ export class CompaniesHouseClient {
       this.cache.set(cacheKey, results, 5 * 60); // Cache for 5 minutes
       return results;
     } catch (error) {
-      this.log(`Error searching companies: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.log(
+        `Error searching companies: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
       if (error instanceof CompaniesHouseError) {
         throw error;
       }
-      throw new APIError(`Failed to search companies: ${error instanceof Error ? error.message : 'Unknown error'}`, 500);
+      throw new APIError(
+        `Failed to search companies: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        500
+      );
     }
   }
 
@@ -226,7 +237,9 @@ export class CompaniesHouseClient {
       this.cache.set(cacheKey, profile, 30 * 60); // Cache for 30 minutes
       return profile;
     } catch (error) {
-      throw error instanceof APIError ? error : new APIError(`Failed to get company profile for ${companyNumber}`, 500);
+      throw error instanceof APIError
+        ? error
+        : new APIError(`Failed to get company profile for ${companyNumber}`, 500);
     }
   }
 
@@ -251,12 +264,16 @@ export class CompaniesHouseClient {
         params.append('register_view', 'true');
       }
 
-      const data = await this.makeRequest<OfficersList>(`/company/${companyNumber}/officers?${params.toString()}`);
+      const data = await this.makeRequest<OfficersList>(
+        `/company/${companyNumber}/officers?${params.toString()}`
+      );
 
       this.cache.set(cacheKey, data, 10 * 60); // Cache for 10 minutes
       return data;
     } catch (error) {
-      throw error instanceof APIError ? error : new APIError(`Failed to get officers for company ${companyNumber}`, 500);
+      throw error instanceof APIError
+        ? error
+        : new APIError(`Failed to get officers for company ${companyNumber}`, 500);
     }
   }
 
@@ -265,8 +282,10 @@ export class CompaniesHouseClient {
     options: { category?: string; limit?: number; startIndex?: number } = {}
   ): Promise<FilingHistoryList> {
     const { category, limit = 25, startIndex = 0 } = options;
-    this.log(`Getting filing history for company ${companyNumber}, category: ${category || 'all'}, limit: ${limit}, startIndex: ${startIndex}`);
-    
+    this.log(
+      `Getting filing history for company ${companyNumber}, category: ${category || 'all'}, limit: ${limit}, startIndex: ${startIndex}`
+    );
+
     const cacheKey = `filings:${companyNumber}:${category || 'all'}:${limit}:${startIndex}`;
     const cached = this.cache.get(cacheKey);
     if (cached) {
@@ -285,14 +304,20 @@ export class CompaniesHouseClient {
       }
 
       this.log(`Fetching filing history with params: ${params.toString()}`);
-      const data = await this.makeRequest<FilingHistoryList>(`/company/${companyNumber}/filing-history?${params.toString()}`);
+      const data = await this.makeRequest<FilingHistoryList>(
+        `/company/${companyNumber}/filing-history?${params.toString()}`
+      );
 
       this.log(`Got ${data.items?.length || 0} filing history items for company ${companyNumber}`);
       this.cache.set(cacheKey, data, 2 * 60); // Cache for 2 minutes
       return data;
     } catch (error) {
-      this.log(`Error getting filing history: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      throw error instanceof APIError ? error : new APIError(`Failed to get filing history for company ${companyNumber}`, 500);
+      this.log(
+        `Error getting filing history: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+      throw error instanceof APIError
+        ? error
+        : new APIError(`Failed to get filing history for company ${companyNumber}`, 500);
     }
   }
 
@@ -301,8 +326,10 @@ export class CompaniesHouseClient {
     options: { limit?: number; startIndex?: number } = {}
   ): Promise<ChargesList> {
     const { limit = 25, startIndex = 0 } = options;
-    this.log(`Getting charges for company ${companyNumber}, limit: ${limit}, startIndex: ${startIndex}`);
-    
+    this.log(
+      `Getting charges for company ${companyNumber}, limit: ${limit}, startIndex: ${startIndex}`
+    );
+
     const cacheKey = `charges:${companyNumber}:${limit}:${startIndex}`;
     const cached = this.cache.get(cacheKey);
     if (cached) {
@@ -317,14 +344,20 @@ export class CompaniesHouseClient {
       });
 
       this.log(`Fetching company charges with params: ${params.toString()}`);
-      const data = await this.makeRequest<ChargesList>(`/company/${companyNumber}/charges?${params.toString()}`);
+      const data = await this.makeRequest<ChargesList>(
+        `/company/${companyNumber}/charges?${params.toString()}`
+      );
 
       this.log(`Got ${data.items?.length || 0} charges for company ${companyNumber}`);
       this.cache.set(cacheKey, data, 30 * 60); // Cache for 30 minutes
       return data;
     } catch (error) {
-      this.log(`Error getting company charges: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      throw error instanceof APIError ? error : new APIError(`Failed to get charges for company ${companyNumber}`, 500);
+      this.log(
+        `Error getting company charges: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+      throw error instanceof APIError
+        ? error
+        : new APIError(`Failed to get charges for company ${companyNumber}`, 500);
     }
   }
 
@@ -333,8 +366,10 @@ export class CompaniesHouseClient {
     options: { limit?: number; startIndex?: number } = {}
   ): Promise<PSCList> {
     const { limit = 25, startIndex = 0 } = options;
-    this.log(`Getting PSCs for company ${companyNumber}, limit: ${limit}, startIndex: ${startIndex}`);
-    
+    this.log(
+      `Getting PSCs for company ${companyNumber}, limit: ${limit}, startIndex: ${startIndex}`
+    );
+
     const cacheKey = `pscs:${companyNumber}:${limit}:${startIndex}`;
     const cached = this.cache.get(cacheKey);
     if (cached) {
@@ -349,24 +384,30 @@ export class CompaniesHouseClient {
       });
 
       this.log(`Fetching PSCs with params: ${params.toString()}`);
-      const data = await this.makeRequest<PSCList>(`/company/${companyNumber}/persons-with-significant-control?${params.toString()}`);
+      const data = await this.makeRequest<PSCList>(
+        `/company/${companyNumber}/persons-with-significant-control?${params.toString()}`
+      );
 
       this.log(`Got ${data.items?.length || 0} PSCs for company ${companyNumber}`);
       this.cache.set(cacheKey, data, 30 * 60); // Cache for 30 minutes
       return data;
     } catch (error) {
       this.log(`Error getting PSCs: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      throw error instanceof APIError ? error : new APIError(`Failed to get PSCs for company ${companyNumber}`, 500);
+      throw error instanceof APIError
+        ? error
+        : new APIError(`Failed to get PSCs for company ${companyNumber}`, 500);
     }
   }
 
   async searchOfficers(
-    query: string, 
+    query: string,
     options: { limit?: number; startIndex?: number } = {}
   ): Promise<OfficerSearchResponse> {
     const { limit = 35, startIndex = 0 } = options;
-    this.log(`Searching officers with query: "${query}", limit: ${limit}, startIndex: ${startIndex}`);
-    
+    this.log(
+      `Searching officers with query: "${query}", limit: ${limit}, startIndex: ${startIndex}`
+    );
+
     const cacheKey = `officer-search:${query}:${limit}:${startIndex}`;
     const cached = this.cache.get(cacheKey);
     if (cached) {
@@ -382,13 +423,17 @@ export class CompaniesHouseClient {
       });
 
       this.log(`Fetching officer search results with params: ${params.toString()}`);
-      const data = await this.makeRequest<OfficerSearchResponse>(`/search/officers?${params.toString()}`);
+      const data = await this.makeRequest<OfficerSearchResponse>(
+        `/search/officers?${params.toString()}`
+      );
 
       this.log(`Got ${data.items?.length || 0} officers matching "${query}"`);
       this.cache.set(cacheKey, data, 5 * 60); // Cache for 5 minutes
       return data;
     } catch (error) {
-      this.log(`Error searching officers: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.log(
+        `Error searching officers: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
       throw error instanceof APIError ? error : new APIError('Failed to search officers', 500);
     }
   }

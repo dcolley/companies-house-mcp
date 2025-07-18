@@ -24,5 +24,6 @@ coverage/
 .DS_Store
 Thumbs.db
 
-# Development notes (personal)
+# Development notes
 dev-notes/
+TASKS.md
