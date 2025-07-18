@@ -49,4 +49,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Docker deployment guide
 - GitHub Actions CI/CD pipeline
 
-[1.0.0]: https://github.com/modelcontextprotocol/companies-house-mcp/releases/tag/v1.0.0 
+[1.0.0]: https://github.com/aicayzer/companies-house-mcp/releases/tag/v1.0.0 
