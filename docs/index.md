@@ -16,9 +16,8 @@ Welcome to the Companies House MCP Server documentation. This server provides AI
 - **[Testing Guide](testing-guide.md)** - How to test the server and run the test suite
 
 ### Getting Started
-- **[Installation](../README.md#installation)** - Installation and setup instructions
-- **[Configuration](../README.md#usage-with-claude-desktop)** - MCP configuration examples
-- **[Examples](../README.md#example-queries)** - Common usage patterns
+- **[Installation](installation.md)** - Installation and setup instructions
+- **[Tools Reference](tools.md)** - Complete tool documentation and examples
 
 ## Available Tools
 
@@ -52,14 +51,14 @@ All tools support two response modes:
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/modelcontextprotocol/companies-house-mcp/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/modelcontextprotocol/companies-house-mcp/discussions)
+- **Issues**: [GitHub Issues](https://github.com/aicayzer/companies-house-mcp/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/aicayzer/companies-house-mcp/discussions)
 - **API Documentation**: [Companies House API](https://developer.company-information.service.gov.uk/)
 
 ## Contributing
 
-We welcome contributions! Please see our [Contributing Guide](../README.md#contributing) for details on how to get started.
+We welcome contributions! Please see the main repository for contributing guidelines.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details. 
+This project is licensed under the MIT License. 
