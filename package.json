@@ -39,11 +39,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/modelcontextprotocol/companies-house-mcp.git"
+    "url": "https://github.com/aicayzer/companies-house-mcp.git"
   },
-  "homepage": "https://github.com/modelcontextprotocol/companies-house-mcp#readme",
+  "homepage": "https://github.com/aicayzer/companies-house-mcp#readme",
   "bugs": {
-    "url": "https://github.com/modelcontextprotocol/companies-house-mcp/issues"
+    "url": "https://github.com/aicayzer/companies-house-mcp/issues"
   },
   "engines": {
     "node": ">=18.0.0"
