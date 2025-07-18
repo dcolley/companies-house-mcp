@@ -1,6 +1,6 @@
 {
   "name": "companies-house-mcp",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Model Context Protocol server for UK Companies House API",
   "type": "module",
   "main": "dist/index.js",
@@ -35,11 +35,15 @@
     "api",
     "typescript"
   ],
-  "author": "Your Name",
+  "author": "Companies House MCP Contributors",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/companies-house-mcp.git"
+    "url": "https://github.com/aicayzer/companies-house-mcp.git"
+  },
+  "homepage": "https://github.com/aicayzer/companies-house-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/aicayzer/companies-house-mcp/issues"
   },
   "engines": {
     "node": ">=18.0.0"

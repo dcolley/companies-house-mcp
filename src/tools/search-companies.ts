@@ -22,30 +22,30 @@ export class SearchCompaniesTool implements MCPTool {
     properties: {
       query: {
         type: 'string',
-        description: 'Company name or number to search for'
+        description: 'Company name or number to search for',
       },
       limit: {
         type: 'number',
         description: 'Maximum number of companies to return (default: 20, max: 100)',
         minimum: 1,
-        maximum: 100
+        maximum: 100,
       },
       activeOnly: {
         type: 'boolean',
-        description: 'Only return active companies (default: true)'
+        description: 'Only return active companies (default: true)',
       },
       verbose: {
         type: 'boolean',
-        description: 'Return more detailed information about each company (default: false)'
+        description: 'Return more detailed information about each company (default: false)',
       },
       pageSize: {
         type: 'number',
         description: 'Number of results per page for pagination (default: 20, max: 100)',
         minimum: 1,
-        maximum: 100
-      }
+        maximum: 100,
+      },
     },
-    required: ['query']
+    required: ['query'],
   };
 
   constructor(apiKey: string) {
@@ -64,7 +64,9 @@ export class SearchCompaniesTool implements MCPTool {
         parameters
       ) as SearchCompaniesParameters;
 
-      this.log(`Searching for companies with query: "${query}", limit: ${limit}, activeOnly: ${activeOnly}, verbose: ${verbose}, pageSize: ${pageSize}`);
+      this.log(
+        `Searching for companies with query: "${query}", limit: ${limit}, activeOnly: ${activeOnly}, verbose: ${verbose}, pageSize: ${pageSize}`
+      );
 
       const results = await this.client.searchCompanies(query, pageSize, activeOnly);
 
@@ -104,7 +106,7 @@ export class SearchCompaniesTool implements MCPTool {
         // Add more details in verbose mode
         if (verbose) {
           text += `Company Type: ${company.companyType || 'Unknown'}\n`;
-          
+
           if (company.address) {
             if (company.address.region) text += `Region: ${company.address.region}\n`;
             if (company.address.country) text += `Country: ${company.address.country}\n`;

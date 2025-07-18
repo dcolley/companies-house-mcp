@@ -5,6 +5,7 @@ npm-debug.log*
 # Build outputs
 dist/
 build/
+site/
 
 # Environment variables
 .env
@@ -24,5 +25,6 @@ coverage/
 .DS_Store
 Thumbs.db
 
-# Development notes (personal)
+# Development notes
 dev-notes/
+TASKS.md

@@ -28,7 +28,7 @@ export class CompaniesHouseMCPServer {
 
   constructor(
     private serverName: string = 'companies-house-mcp',
-    private version: string = '0.1.0',
+    private version: string = '1.0.0',
     apiKey?: string
   ) {
     this.server = new Server(
@@ -67,14 +67,14 @@ export class CompaniesHouseMCPServer {
     // Explicitly handle initialize requests
     this.server.setRequestHandler(InitializeRequestSchema, async () => {
       return {
-        protocolVersion: "2024-11-05",
+        protocolVersion: '2024-11-05',
         capabilities: {
-          tools: {}
+          tools: {},
         },
         serverInfo: {
           name: this.serverName,
-          version: this.version
-        }
+          version: this.version,
+        },
       };
     });
 

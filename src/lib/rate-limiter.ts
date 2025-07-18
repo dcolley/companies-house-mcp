@@ -34,17 +34,17 @@ export class RateLimiter {
     this.refillTokens();
 
     if (this.tokens < this.tokensPerRequest) {
-      const timeToWait = Math.ceil((this.tokensPerRequest - this.tokens) / (this.maxTokens / this.refillInterval));
-      const waitTimeMs = Math.max(100, timeToWait);
-      
-      throw new RateLimitError(
-        `Rate limit exceeded. Please wait ${waitTimeMs}ms before retrying.`
+      const timeToWait = Math.ceil(
+        (this.tokensPerRequest - this.tokens) / (this.maxTokens / this.refillInterval)
       );
+      const waitTimeMs = Math.max(100, timeToWait);
+
+      throw new RateLimitError(`Rate limit exceeded. Please wait ${waitTimeMs}ms before retrying.`);
     }
 
     this.tokens -= this.tokensPerRequest;
   }
-  
+
   /**
    * Get the current number of available tokens
    */
@@ -52,17 +52,17 @@ export class RateLimiter {
     this.refillTokens();
     return this.tokens;
   }
-  
+
   /**
    * Get the estimated time until the specified number of tokens become available
    */
   getWaitTimeMs(requiredTokens: number = this.tokensPerRequest): number {
     this.refillTokens();
-    
+
     if (this.tokens >= requiredTokens) {
       return 0;
     }
-    
+
     const tokensNeeded = requiredTokens - this.tokens;
     const refillRate = this.maxTokens / this.refillInterval; // tokens per ms
     return Math.ceil(tokensNeeded / refillRate);

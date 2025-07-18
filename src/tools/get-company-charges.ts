@@ -90,8 +90,7 @@ export class GetCompanyChargesTool implements MCPTool {
         ],
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'An unexpected error occurred';
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       return {
         isError: true,
         content: [
@@ -113,20 +112,22 @@ export class GetCompanyChargesTool implements MCPTool {
       const lines: string[] = [];
       lines.push(`Charge ${charge.chargeId || `#${index + 1}`}`);
       lines.push(`Status: ${charge.status || 'Unknown'}`);
-      
+
       if (charge.createdOn) {
         lines.push(`Created: ${formatDate(charge.createdOn)}`);
       }
-      
+
       if (charge.deliveredOn) {
         lines.push(`Delivered: ${formatDate(charge.deliveredOn)}`);
       }
-      
+
       if (charge.classification && charge.classification.description) {
         lines.push(`Type: ${charge.classification.description}`);
       }
-      
-      if (charge.particulars) {
+
+      if (charge.particulars && typeof charge.particulars === 'object' && 'description' in charge.particulars) {
+        lines.push(`Details: ${charge.particulars.description}`);
+      } else if (charge.particulars && typeof charge.particulars === 'string') {
         lines.push(`Details: ${charge.particulars}`);
       }
 

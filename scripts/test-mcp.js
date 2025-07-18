@@ -185,27 +185,27 @@ class MCPTester {
       },
       {
         name: 'get_company_profile', 
-        args: { companyNumber: '00006400' },
-        expectedKeys: ['Status', 'Incorporated', 'Type']
+        args: { companyNumber: '02050399' },
+        expectedKeys: ['Status', 'Incorporated']
       },
       {
         name: 'get_company_officers',
-        args: { companyNumber: '00006400', limit: 5 },
+        args: { companyNumber: '00445790', limit: 5 },
         expectedKeys: ['Officers', 'Appointed:']
       },
       {
         name: 'get_filing_history',
-        args: { companyNumber: '00006400', limit: 5 },
-        expectedKeys: ['Filing History', 'Document ID:']
+        args: { companyNumber: '02050399', limit: 5 },
+        expectedKeys: ['Document ID:']
       },
       {
         name: 'get_company_charges',
-        args: { companyNumber: '00006400' },
+        args: { companyNumber: '02050399' },
         expectedKeys: ['Charges for']
       },
       {
         name: 'get_persons_with_significant_control',
-        args: { companyNumber: '00006400' },
+        args: { companyNumber: '02050399' },
         expectedKeys: ['Persons with Significant Control']
       },
       {

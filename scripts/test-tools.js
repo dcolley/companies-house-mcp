@@ -6,7 +6,7 @@ async function testTools() {
   console.log('Testing Companies House MCP Server Tools...\n');
   
   // Create server with a dummy API key for testing
-  const server = new CompaniesHouseMCPServer('test-server', '0.1.0', 'dummy-api-key');
+  const server = new CompaniesHouseMCPServer('test-server', '1.0.0', 'dummy-api-key');
   
   // Get server info
   const info = server.getServerInfo();

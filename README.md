@@ -1,11 +1,5 @@
 # Companies House MCP Server
 
-UK Companies House API integration for Model Context Protocol (MCP) - the standard for connecting AI assistants to external data sources.
-
-## Overview
-
-This MCP server provides AI assistants with access to UK Companies House public data, enabling them to search for companies, retrieve company profiles, officer information, filing history, and more.
-
 ## Features
 
 - 🔍 **Company Search** - Find companies by name or number
@@ -43,7 +37,7 @@ companies-house-mcp --api-key YOUR_API_KEY
 
 ```bash
 # Clone repository
-git clone https://github.com/your-username/companies-house-mcp
+git clone https://github.com/aicayzer/companies-house-mcp
 cd companies-house-mcp
 
 # Install dependencies
@@ -226,7 +220,7 @@ Contributions are welcome! Please ensure:
 ## Support
 
 - 📚 [MCP Documentation](https://modelcontextprotocol.io)
-- 🐛 [Report Issues](https://github.com/your-username/companies-house-mcp/issues)
+- 🐛 [Report Issues](https://github.com/aicayzer/companies-house-mcp/issues)
 
 ---
 

@@ -13,16 +13,16 @@ describe('SearchCompaniesTool', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Create a mocked client instance
     mockClient = {
       searchCompanies: jest.fn(),
       getApiKey: jest.fn().mockReturnValue(mockApiKey),
     } as unknown as jest.Mocked<CompaniesHouseClient>;
-    
+
     // Make the constructor return our mock instance
     (CompaniesHouseClient as jest.Mock).mockImplementation(() => mockClient);
-    
+
     // Create the tool with the mock client
     tool = new SearchCompaniesTool(mockApiKey);
   });
@@ -44,7 +44,7 @@ describe('SearchCompaniesTool', () => {
       // Make sure we have fixture data
       expect(companiesFixture.searchResults).toBeDefined();
       expect(companiesFixture.searchResults.length).toBeGreaterThan(0);
-      
+
       // Use data from fixture
       mockClient.searchCompanies.mockResolvedValue(companiesFixture.searchResults);
 
@@ -53,11 +53,11 @@ describe('SearchCompaniesTool', () => {
         limit: 1,
         activeOnly: true,
         verbose: false,
-        pageSize: 20
+        pageSize: 20,
       });
 
       expect(mockClient.searchCompanies).toHaveBeenCalledWith('test company', 20, true);
-      
+
       // Get the first company from the fixture
       const company = companiesFixture.searchResults[0];
       if (company) {
@@ -84,13 +84,15 @@ describe('SearchCompaniesTool', () => {
       const result = await tool.execute({
         query: 'test company',
         verbose: false,
-        pageSize: 20
+        pageSize: 20,
       });
 
       expect(mockClient.searchCompanies).toHaveBeenCalledWith('test company', 20, true);
       expect(result.content[0]!.text).toContain(`**${companyWithoutOptionals.title}**`);
       expect(result.content[0]!.text).toContain(`Status: ${companyWithoutOptionals.companyStatus}`);
-      expect(result.content[0]!.text).toContain(`Incorporated: ${companyWithoutOptionals.dateOfCreation}`);
+      expect(result.content[0]!.text).toContain(
+        `Incorporated: ${companyWithoutOptionals.dateOfCreation}`
+      );
       expect(result.content[0]!.text).not.toContain('Address:');
     });
 
@@ -100,13 +102,13 @@ describe('SearchCompaniesTool', () => {
       const result = await tool.execute({
         query: 'nonexistent company',
         verbose: false,
-        pageSize: 20
+        pageSize: 20,
       });
 
       expect(mockClient.searchCompanies).toHaveBeenCalledWith('nonexistent company', 20, true);
       expect(result.content[0]!.text).toContain('No companies found');
     });
-    
+
     it('should provide more details in verbose mode', async () => {
       const companyWithDetails = {
         companyNumber: '01453367',
@@ -120,8 +122,8 @@ describe('SearchCompaniesTool', () => {
           locality: 'London',
           postalCode: 'EC1A 1BB',
           region: 'Greater London',
-          country: 'United Kingdom'
-        }
+          country: 'United Kingdom',
+        },
       };
 
       mockClient.searchCompanies.mockResolvedValue([companyWithDetails]);
@@ -129,40 +131,42 @@ describe('SearchCompaniesTool', () => {
       const result = await tool.execute({
         query: 'test company',
         verbose: true,
-        pageSize: 20
+        pageSize: 20,
       });
 
       expect(mockClient.searchCompanies).toHaveBeenCalledWith('test company', 20, true);
       expect(result.content[0]!.text).toContain(`**${companyWithDetails.title}**`);
-      
+
       // Verbose-specific info should be present
       expect(result.content[0]!.text).toContain(`Company Type: ${companyWithDetails.companyType}`);
       expect(result.content[0]!.text).toContain(`Region: ${companyWithDetails.address.region}`);
       expect(result.content[0]!.text).toContain(`Country: ${companyWithDetails.address.country}`);
     });
-    
+
     it('should use pageSize for API call and limit for display', async () => {
       // Create multiple companies
-      const companies = Array(30).fill(0).map((_, i) => ({
-        companyNumber: `0000${i}`.slice(-8),
-        title: `Test Company ${i}`,
-        companyStatus: 'active',
-        companyType: 'ltd',
-        dateOfCreation: '2020-01-01'
-      }));
-      
+      const companies = Array(30)
+        .fill(0)
+        .map((_, i) => ({
+          companyNumber: `0000${i}`.slice(-8),
+          title: `Test Company ${i}`,
+          companyStatus: 'active',
+          companyType: 'ltd',
+          dateOfCreation: '2020-01-01',
+        }));
+
       mockClient.searchCompanies.mockResolvedValue(companies);
-      
+
       const result = await tool.execute({
         query: 'test company',
         limit: 10,
         pageSize: 30,
-        verbose: false
+        verbose: false,
       });
-      
+
       // Should call API with pageSize
       expect(mockClient.searchCompanies).toHaveBeenCalledWith('test company', 30, true);
-      
+
       // Result should be limited by the limit parameter
       // Count the number of company entries in the text
       const matches = result.content[0]!.text.match(/Test Company \d+/g);
@@ -175,7 +179,7 @@ describe('SearchCompaniesTool', () => {
       const result = await tool.execute({
         query: '', // Empty query should fail validation
         verbose: false,
-        pageSize: 20
+        pageSize: 20,
       });
 
       expect(result).toHaveProperty('isError', true);
@@ -188,7 +192,7 @@ describe('SearchCompaniesTool', () => {
       const result = await tool.execute({
         query: 'test company',
         verbose: false,
-        pageSize: 20
+        pageSize: 20,
       });
 
       expect(result).toHaveProperty('isError', true);
@@ -201,7 +205,7 @@ describe('SearchCompaniesTool', () => {
       const result = await tool.execute({
         query: 'test company',
         verbose: false,
-        pageSize: 20
+        pageSize: 20,
       });
 
       expect(result).toHaveProperty('isError', true);

@@ -57,7 +57,7 @@ describe('MCP Server Integration', () => {
       // Verify server is created with correct configuration
       const serverInfo = server.getServerInfo();
       expect(serverInfo.name).toBe('companies-house-mcp');
-      expect(serverInfo.version).toBe('0.1.0');
+      expect(serverInfo.version).toBe('1.0.0');
       expect(serverInfo.toolCount).toBe(0);
 
       // Start the server

@@ -17,7 +17,7 @@ describe('SearchOfficersTool', () => {
 
     // Make the constructor return our mock instance
     (CompaniesHouseClient as jest.Mock).mockImplementation(() => mockClient);
-    
+
     // Create the tool with the API key
     tool = new SearchOfficersTool(mockApiKey);
   });
@@ -40,7 +40,7 @@ describe('SearchOfficersTool', () => {
       ],
       total_results: 1,
       start_index: 0,
-      items_per_page: 35
+      items_per_page: 35,
     };
 
     it('should search officers successfully', async () => {
@@ -60,7 +60,7 @@ describe('SearchOfficersTool', () => {
         items: [],
         total_results: 0,
         start_index: 0,
-        items_per_page: 35
+        items_per_page: 35,
       });
 
       const result = await tool.execute({ query: 'Nonexistent Officer', limit: 35, startIndex: 0 });

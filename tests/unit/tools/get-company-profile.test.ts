@@ -14,10 +14,10 @@ describe('GetCompanyProfileTool', () => {
     mockClient = {
       getCompanyProfile: jest.fn(),
     } as any;
-    
+
     // Make the constructor return our mock instance
     (CompaniesHouseClient as jest.Mock).mockImplementation(() => mockClient);
-    
+
     // Create the tool with the API key
     tool = new GetCompanyProfileTool(mockApiKey);
   });
@@ -106,7 +106,7 @@ describe('GetCompanyProfileTool', () => {
       expect(text).toContain('**Status**: dissolved');
       expect(text).toContain('**Dissolved**: 1 January 2023');
     });
-    
+
     it('should include additional information in verbose mode', async () => {
       const mockProfile: CompanyProfile = {
         company_name: 'Verbose Ltd',
@@ -117,16 +117,16 @@ describe('GetCompanyProfileTool', () => {
         date_of_creation: '2020-01-01',
         sic_codes: ['62020', '63110'],
         previous_company_names: [
-          { 
-            name: 'Old Name Ltd', 
-            effective_from: '2015-01-01', 
-            ceased_on: '2020-01-01' 
-          }
+          {
+            name: 'Old Name Ltd',
+            effective_from: '2015-01-01',
+            ceased_on: '2020-01-01',
+          },
         ],
         links: {
           filing_history: '/company/00006400/filing-history',
-          officers: '/company/00006400/officers'
-        }
+          officers: '/company/00006400/officers',
+        },
       };
 
       mockClient.getCompanyProfile.mockResolvedValue(mockProfile);
@@ -137,7 +137,7 @@ describe('GetCompanyProfileTool', () => {
       // Standard info should still be present
       expect(text).toContain('Verbose Ltd');
       expect(text).toContain('No. 00006400');
-      
+
       // Verbose-only information should be present
       expect(text).toContain('SIC Codes');
       expect(text).toContain('62020');

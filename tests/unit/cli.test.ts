@@ -6,7 +6,7 @@ const mockServer = {
   stop: jest.fn(),
   getServerInfo: jest.fn(() => ({
     name: 'companies-house-mcp',
-    version: '0.1.0',
+    version: '1.0.0',
     toolCount: 7,
   })),
 };
