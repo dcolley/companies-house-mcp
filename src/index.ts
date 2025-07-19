@@ -148,8 +148,10 @@ class CompaniesHouseCLI {
 
 // Only run if this module is executed directly
 // Check if this file is being run directly (not imported)
-const isMainModule = import.meta.url === `file://${process.argv[1]}` || 
-  process.argv[1]?.includes('companies-house-mcp');
+// Avoid running during tests or when imported as a module
+const isMainModule = process.argv[1]?.includes('companies-house-mcp') && 
+  !process.argv[0]?.includes('jest') &&
+  process.env.NODE_ENV !== 'test';
 
 if (isMainModule) {
   const cli = new CompaniesHouseCLI();
