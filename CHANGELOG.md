@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-07-19
+
+### Fixed
+- Fixed CLI binary execution issue when installed globally via npm or npx
+- Improved module detection logic to work with npm's symlink system
+
 ## [1.0.0] - 2025-07-18
 
 ### Added
