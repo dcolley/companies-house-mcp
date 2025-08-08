@@ -204,7 +204,7 @@ class CompaniesHouseCLI {
       '  --port <port>                                          - HTTP port (default: 3000)',
       '',
       'Get your API key from:',
-      '  https://github.com/aicayzer/companies-house-mcp',
+      '  https://developer.company-information.service.gov.uk/',
     ];
 
     info.forEach(line => console.log(line));
