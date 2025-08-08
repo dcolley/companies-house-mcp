@@ -195,4 +195,18 @@ export class CompaniesHouseMCPServer {
       toolCount: this.tools.size,
     };
   }
+
+  /**
+   * Get the underlying MCP Server instance for HTTP transport
+   */
+  public getServer(): Server {
+    return this.server;
+  }
+
+  /**
+   * Get all registered tools for HTTP transport
+   */
+  public getTools(): Map<string, MCPTool> {
+    return this.tools;
+  }
 }

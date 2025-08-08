@@ -149,8 +149,12 @@ export class GetCompanyOfficersTool implements MCPTool {
 
   private formatOfficer(officer: Officer, verbose: boolean = false) {
     const sections = [
+
       // Name and role
       `**${officer.name}** - ${officer.officer_role}`,
+
+      // Person number
+      officer.person_number ? `\nPerson Number: ${officer.person_number}` : '',
 
       // Appointment dates
       `Appointed: ${formatDate(officer.appointed_on)}${

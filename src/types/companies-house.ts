@@ -266,6 +266,7 @@ export interface PersonWithSignificantControl {
 }
 
 export interface Officer {
+  person_number?: string;
   name: string;
   officer_role: string;
   appointed_on: string;

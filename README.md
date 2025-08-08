@@ -54,9 +54,36 @@ npm test
 
 # Start development server
 npm run dev
+
+# Start HTTP server for testing
+npm run test:http
 ```
 
-## Usage with Claude Desktop
+## CLI Commands
+
+The server provides several CLI commands:
+
+```bash
+# Start with STDIO transport (default)
+companies-house-mcp start --api-key YOUR_API_KEY
+
+# Start with HTTP transport
+companies-house-mcp serve-http --api-key YOUR_API_KEY --port 3000
+
+# Show server information
+companies-house-mcp info
+
+# Enable debug logging
+companies-house-mcp start --api-key YOUR_API_KEY --debug
+```
+
+## Usage
+
+### STDIO Transport (Default)
+
+The server runs with STDIO transport by default, suitable for integration with Claude Desktop and other MCP clients.
+
+#### With Claude Desktop
 
 Add to your `claude_desktop_config.json`:
 
@@ -74,7 +101,7 @@ Add to your `claude_desktop_config.json`:
 }
 ```
 
-### Running Locally with Direct Path
+#### Running Locally with Direct Path
 
 For local development, you can point Claude directly to your local build:
 
@@ -87,6 +114,69 @@ For local development, you can point Claude directly to your local build:
     }
   }
 }
+```
+
+### HTTP Transport
+
+The server also supports HTTP transport for web-based integrations and testing.
+
+#### Start HTTP Server
+
+```bash
+# Start HTTP server on default port (3000)
+companies-house-mcp serve-http --api-key YOUR_API_KEY
+
+# Start HTTP server on custom port
+companies-house-mcp serve-http --api-key YOUR_API_KEY --port 8080
+```
+
+#### HTTP Endpoints
+
+Once running, the HTTP server provides the following endpoints:
+
+- `GET /` - Server information and usage
+- `GET /health` - Health check
+- `GET /info` - Server details and tool information
+- `POST /mcp` - MCP protocol endpoint
+
+#### Testing HTTP Server
+
+```bash
+# Test the HTTP server functionality (manual script)
+npm run test:http
+
+# Run integration tests (no API key required)
+npm run test:http:integration
+
+# Run API integration tests (requires API key)
+npm run test:http:api
+
+# Or manually test endpoints
+curl http://localhost:3000/health
+curl http://localhost:3000/info
+```
+
+#### Using with HTTP Clients
+
+You can integrate the HTTP server with any MCP-compatible client that supports HTTP transport:
+
+```bash
+# Example: Test MCP endpoint
+curl -X POST http://localhost:3000/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "initialize",
+    "params": {
+      "protocolVersion": "2024-11-05",
+      "capabilities": {},
+      "clientInfo": {
+        "name": "test-client",
+        "version": "1.0.0"
+      }
+    }
+  }'
 ```
 
 ## Available Tools
@@ -132,7 +222,30 @@ DEBUG=true                                 # Enable debug logging (optional)
 - Automatic rate limiting prevents API quota exceeded errors
 - Responses are cached to reduce API calls
 
-## Docker Support (Optional)
+## Docker Support
+
+### Quick Start with Docker Compose
+
+The easiest way to run the HTTP server with Docker:
+
+```bash
+# Copy the environment template
+cp docker.env.example .env
+
+# Edit .env and add your API key
+# COMPANIES_HOUSE_API_KEY=your_api_key_here
+
+# Start the HTTP server
+docker compose up -d
+
+# Check the logs
+docker compose logs -f
+
+# Test the server
+curl http://localhost:3000/health
+```
+
+### Manual Docker Build
 
 A Dockerfile is included for containerized deployment:
 
@@ -140,9 +253,25 @@ A Dockerfile is included for containerized deployment:
 # Build image
 docker build -t companies-house-mcp .
 
-# Run container
-docker run -e COMPANIES_HOUSE_API_KEY=your_key companies-house-mcp
+# Run HTTP server container
+docker run -d \
+  --name companies-house-mcp \
+  -p 3000:3000 \
+  -e COMPANIES_HOUSE_API_KEY=your_key \
+  companies-house-mcp \
+  node dist/index.js serve-http
 ```
+
+### Docker Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `COMPANIES_HOUSE_API_KEY` | Required | Your Companies House API key |
+| `MCP_PORT` | 3000 | Port to expose the HTTP server |
+| `DEBUG` | false | Enable debug logging |
+| `CH_MCP_RATE_LIMIT` | 500 | Rate limit (requests per 5 minutes) |
+| `CH_MCP_CACHE_SIZE` | 1000 | Cache size for responses |
+| `CH_MCP_LOG_LEVEL` | info | Logging level |
 
 ## Development
 

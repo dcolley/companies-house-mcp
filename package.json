@@ -8,17 +8,23 @@
     "companies-house-mcp": "dist/index.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && mkdir -p dist/html && cp -r src/html/* dist/html/",
     "build:watch": "tsc --watch",
     "dev": "npm run build && node dist/index.js",
     "dev:env": "set -a && source .env && set +a && npm run dev",
+    "dev:http": "npm run build && node dist/index.js serve-http",
+    "dev:http:watch": "tsx watch src/index.ts serve-http",
+    "dev:http:direct": "tsx watch src/http-server.ts",
     "start": "node dist/index.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:integration": "jest tests/integration/",
     "test:unit": "jest tests/unit/",
-    "test:all": "npm run test:unit && npm run test:integration",
+    "test:http": "npm run build && node test-http.js",
+    "test:http:integration": "jest tests/integration/http-server.test.ts",
+    "test:http:api": "jest tests/integration/http-server-api.test.ts",
+    "test:all": "npm run test:unit && npm run test:integration && npm run test:http:integration",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write src/ tests/",
@@ -51,10 +57,15 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
     "commander": "^14.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^4.18.2",
     "zod": "^3.25.50"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.15.29",
     "@typescript-eslint/eslint-plugin": "^8.33.1",
@@ -62,8 +73,10 @@
     "eslint": "^9.28.0",
     "globals": "^14.0.0",
     "jest": "^29.7.0",
+    "node-fetch": "^3.3.2",
     "prettier": "^3.5.3",
     "ts-jest": "^29.3.4",
+    "tsx": "^4.7.0",
     "typescript": "^5.8.3"
   },
   "files": [

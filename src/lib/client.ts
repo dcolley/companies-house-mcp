@@ -260,13 +260,30 @@ export class CompaniesHouseClient {
         start_index: '0',
       });
 
-      if (activeOnly) {
-        params.append('register_view', 'true');
-      }
+      // Note: register_view=true parameter causes 500 errors, so we fetch all officers
+      // and filter for active ones on the client side if needed
+      this.log(`Fetching officers for company ${companyNumber} (activeOnly: ${activeOnly})`);
 
       const data = await this.makeRequest<OfficersList>(
         `/company/${companyNumber}/officers?${params.toString()}`
       );
+
+      // If activeOnly is requested, filter the results on the client side
+      if (activeOnly && data.items) {
+        const activeOfficers = data.items.filter(officer => !officer.resigned_on);
+        this.log(`Filtered ${data.items.length} officers to ${activeOfficers.length} active officers`);
+        
+        // Create a new response object with filtered data
+        const filteredData: OfficersList = {
+          ...data,
+          items: activeOfficers,
+          active_count: activeOfficers.length,
+          total_results: activeOfficers.length,
+        };
+        
+        this.cache.set(cacheKey, filteredData, 10 * 60); // Cache for 10 minutes
+        return filteredData;
+      }
 
       this.cache.set(cacheKey, data, 10 * 60); // Cache for 10 minutes
       return data;

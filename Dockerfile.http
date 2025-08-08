@@ -1,0 +1,36 @@
+# Simple test container - just copy dist from source
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install dumb-init for proper signal handling
+RUN apk add --no-cache dumb-init
+
+# Copy package files
+COPY package*.json ./
+
+# Install production dependencies only
+RUN npm ci --omit=dev && \
+    npm cache clean --force
+
+# Copy dist directory from source (assuming it exists)
+COPY dist/ ./dist/
+# Copy HTML files for the web interface
+COPY src/html ./dist/html
+
+# Copy the wrapper script
+COPY start-http.js ./start-http.js
+RUN chmod +x ./start-http.js
+
+
+EXPOSE 3000
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Default command - use the wrapper script
+CMD ["./start-http.js", "serve-http"]
+
+# # Health check
+# HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  # CMD node -e "console.log('OK')" || exit 1
